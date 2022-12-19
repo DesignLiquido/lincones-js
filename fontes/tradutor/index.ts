@@ -1,10 +1,10 @@
-import { Atualizar, Comando, Inserir, Selecionar } from "../comandos";
+import { Atualizar, Comando, Criar, Inserir, Selecionar } from "../comandos";
 
 import tiposDeSimbolos from "../tipos-de-simbolos";
 
 export class Tradutor {
 
-    traduzirOperador(operador: string) {
+    private traduzirOperador(operador: string) {
         switch (operador) {
             case tiposDeSimbolos.IGUAL:
                 return '=';
@@ -15,7 +15,20 @@ export class Tradutor {
         }
     }
 
-    traduzirComandoAtualizar(comandoAtualizar: Atualizar) {
+    private traduzirTipo(tipo: string) {
+        switch (tipo) {
+            case 'INTEIRO':
+                return 'INT';
+            case 'LOGICO':
+                return 'BOOLEAN';
+            case 'NUMERO':
+                return 'INT';
+            case 'TEXTO':
+                return 'VARCHAR';
+        }
+    }
+
+    private traduzirComandoAtualizar(comandoAtualizar: Atualizar) {
         let resultado = 'UPDATE ';
         resultado += `${comandoAtualizar.tabela}\nSET `
 
@@ -45,15 +58,40 @@ export class Tradutor {
         return resultado;
     }
 
-    traduzirComandoCriar() {
+    private traduzirComandoCriar(comandoCriar: Criar) {
+        let resultado = 'CREATE TABLE ';
+
+        resultado += `${comandoCriar.tabela} (\n`;
+
+        for (const coluna of comandoCriar.colunas) {
+            resultado += `    ${coluna.nomeColuna} ${this.traduzirTipo(coluna.tipo)} `;
+            if (coluna.nulo) {
+                resultado += `NULL `;
+            } else {
+                resultado += `NOT NULL `;
+            }
+
+            if (coluna.chavePrimaria) {
+                resultado += 'PRIMARY KEY ';
+                if (coluna.autoIncremento) {
+                    resultado += 'AUTOINCREMENT ';
+                }
+            }
+
+            resultado = resultado.slice(0, -1);
+            resultado += ',\n';
+        }
+
+        resultado = resultado.slice(0, -2);
+        resultado += `\n)`;
+        return resultado;
+    }
+
+    private traduzirComandoExcluir() {
         return '';
     }
 
-    traduzirComandoExcluir() {
-        return '';
-    }
-
-    traduzirComandoInserir(comandoInserir: Inserir) {
+    private traduzirComandoInserir(comandoInserir: Inserir) {
         let resultado = 'INSERT INTO ';
         resultado += `${comandoInserir.tabela} (`;
 
@@ -78,7 +116,7 @@ export class Tradutor {
         return resultado;
     }
 
-    traduzirComandoSelecionar(comandoSelecionar: Selecionar) {
+    private traduzirComandoSelecionar(comandoSelecionar: Selecionar) {
         let resultado = 'SELECT ';
 
         // Colunas

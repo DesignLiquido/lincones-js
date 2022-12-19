@@ -123,7 +123,7 @@ export class AvaliadorSintatico extends AvaliadorSintaticoBase {
             }
         }
 
-        return new Coluna(nomeDaColuna.lexema, tipoColuna, tamanhoColuna, nulo, chavePrimaria, false);
+        return new Coluna(nomeDaColuna.lexema, tipoColuna, tamanhoColuna, nulo, chavePrimaria, false, autoIncremento);
     }
 
     private comandoCriar(): Criar {

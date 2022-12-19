@@ -7,6 +7,7 @@ export class Coluna {
     public nulo: boolean;
     public chavePrimaria: boolean;
     public chaveEstrangeira: boolean;
+    public autoIncremento: boolean;
 
     constructor(
         nomeColuna: string,
@@ -14,7 +15,8 @@ export class Coluna {
         tamanho?: number | Simbolo,
         nulo?: boolean,
         chavePrimaria?: boolean,
-        chaveEstrangeira?: boolean
+        chaveEstrangeira?: boolean,
+        autoIncremento?: boolean
     ) {
         this.nomeColuna = nomeColuna;
         this.tipo = tipo;
@@ -23,5 +25,6 @@ export class Coluna {
         this.nulo = nulo || false;
         this.chavePrimaria = chavePrimaria || false;
         this.chaveEstrangeira = chaveEstrangeira || false;
+        this.autoIncremento = autoIncremento || false;
     }
 }
