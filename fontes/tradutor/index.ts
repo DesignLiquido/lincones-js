@@ -116,10 +116,19 @@ export class Tradutor {
         resultado += `)\nVALUES (`;
 
         for (const valor of comandoInserir.valores) {
-            if (typeof valor.literal === "string") {
-                resultado += `"${valor.literal}", `;
-            } else {
-                resultado += `${valor.literal}, `;
+            switch (valor.tipo) {
+                case tiposDeSimbolos.FALSO:
+                    resultado += 'FALSE, ';
+                    break;
+                case tiposDeSimbolos.TEXTO:
+                    resultado += `"${valor.literal}", `;
+                    break;
+                case tiposDeSimbolos.VERDADEIRO:
+                    resultado += 'TRUE, ';
+                    break;
+                default:
+                    resultado += `${valor.literal}, `;
+                    break;
             }
         }
 
