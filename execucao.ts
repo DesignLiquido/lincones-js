@@ -1,37 +1,19 @@
-import { AvaliadorSintatico } from "./fontes/avaliador-sintatico";
-import { Lexador } from "./fontes/lexador";
-import { Tradutor } from "./fontes/tradutor";
+import * as leituraLinhas from 'readline';
 
-const lexador = new Lexador();
-const avaliadorSintatico = new AvaliadorSintatico();
-const tradutor = new Tradutor();
+import { Lincones } from "./fontes/lincones";
 
-const sentencaSelecao = 'SELECIONAR NOME, EMAIL DE clientes ONDE IDADE = 18;';
-let resultadoLexador = lexador.mapear([sentencaSelecao]);
-let resultadoAvaliacaoSintatica = avaliadorSintatico.analisar(resultadoLexador);
-let resultadoTraducao = tradutor.traduzir(resultadoAvaliacaoSintatica.comandos);
-console.log(resultadoTraducao);
+const lincones = new Lincones();
 
-const sentencaCriacao = 'CRIAR TABELA clientes(ID INTEIRO NAO NULO CHAVE PRIMARIA AUTO INCREMENTO, NOME TEXTO(100) NAO NULO, IDADE INTEIRO NAO NULO, EMAIL TEXTO(255) NAO NULO, ATIVO LOGICO NAO NULO);';
-resultadoLexador = lexador.mapear([sentencaCriacao]);
-resultadoAvaliacaoSintatica = avaliadorSintatico.analisar(resultadoLexador);
-resultadoTraducao = tradutor.traduzir(resultadoAvaliacaoSintatica.comandos);
-console.log(resultadoTraducao);
+const interfaceLeitura = leituraLinhas.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+    prompt: '\nlincones> ',
+});
 
-const sentencaInsercao = 'INSERIR EM clientes (NOME) VALORES ("Pernalonga")';
-resultadoLexador = lexador.mapear([sentencaInsercao]);
-resultadoAvaliacaoSintatica = avaliadorSintatico.analisar(resultadoLexador);
-resultadoTraducao = tradutor.traduzir(resultadoAvaliacaoSintatica.comandos);
-console.log(resultadoTraducao);
+interfaceLeitura.prompt();
+interfaceLeitura.on('line', (linha: string) => {
+    const resultado = lincones.executar(linha);
+    console.log(resultado)
 
-const sentencaoExclusao = 'EXCLUIR clientes ONDE ID = 2;';
-resultadoLexador = lexador.mapear([sentencaoExclusao]);
-resultadoAvaliacaoSintatica = avaliadorSintatico.analisar(resultadoLexador);
-resultadoTraducao = tradutor.traduzir(resultadoAvaliacaoSintatica.comandos);
-console.log(resultadoTraducao);
-
-const sentencaoAtualizacao = 'ATUALIZAR clientes DEFINIR email = "patolino@warnerbros.com" ONDE ID = 2;';
-resultadoLexador = lexador.mapear([sentencaoAtualizacao]);
-resultadoAvaliacaoSintatica = avaliadorSintatico.analisar(resultadoLexador);
-resultadoTraducao = tradutor.traduzir(resultadoAvaliacaoSintatica.comandos);
-console.log(resultadoTraducao);
+    interfaceLeitura.prompt();
+});
