@@ -212,9 +212,11 @@ export class AvaliadorSintatico extends AvaliadorSintaticoBase {
         const valores = [];
         do {
             if (![
-                tiposDeSimbolos.IDENTIFICADOR, 
+                tiposDeSimbolos.IDENTIFICADOR,
+                tiposDeSimbolos.FALSO,
                 tiposDeSimbolos.NUMERO, 
-                tiposDeSimbolos.TEXTO
+                tiposDeSimbolos.TEXTO,
+                tiposDeSimbolos.VERDADEIRO
             ].includes(this.simbolos[this.atual].tipo)) {
                 throw this.erro(this.simbolos[this.atual], `Esperado valor válido para inserção em comando "INSERIR".`);
             }
