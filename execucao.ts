@@ -29,3 +29,9 @@ resultadoLexador = lexador.mapear([sentencaoExclusao]);
 resultadoAvaliacaoSintatica = avaliadorSintatico.analisar(resultadoLexador);
 resultadoTraducao = tradutor.traduzir(resultadoAvaliacaoSintatica.comandos);
 console.log(resultadoTraducao);
+
+const sentencaoAtualizacao = 'ATUALIZAR clientes DEFINIR email = "patolino@warnerbros.com" ONDE ID = 2;';
+resultadoLexador = lexador.mapear([sentencaoAtualizacao]);
+resultadoAvaliacaoSintatica = avaliadorSintatico.analisar(resultadoLexador);
+resultadoTraducao = tradutor.traduzir(resultadoAvaliacaoSintatica.comandos);
+console.log(resultadoTraducao);
