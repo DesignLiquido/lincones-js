@@ -23,3 +23,9 @@ resultadoLexador = lexador.mapear([sentencaInsercao]);
 resultadoAvaliacaoSintatica = avaliadorSintatico.analisar(resultadoLexador);
 resultadoTraducao = tradutor.traduzir(resultadoAvaliacaoSintatica.comandos);
 console.log(resultadoTraducao);
+
+const sentencaoExclusao = 'EXCLUIR clientes ONDE ID = 2;';
+resultadoLexador = lexador.mapear([sentencaoExclusao]);
+resultadoAvaliacaoSintatica = avaliadorSintatico.analisar(resultadoLexador);
+resultadoTraducao = tradutor.traduzir(resultadoAvaliacaoSintatica.comandos);
+console.log(resultadoTraducao);

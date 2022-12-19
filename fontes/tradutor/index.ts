@@ -1,4 +1,4 @@
-import { Atualizar, Comando, Criar, Inserir, Selecionar } from "../comandos";
+import { Atualizar, Comando, Criar, Excluir, Inserir, Selecionar } from "../comandos";
 
 import tiposDeSimbolos from "../tipos-de-simbolos";
 
@@ -87,8 +87,21 @@ export class Tradutor {
         return resultado;
     }
 
-    private traduzirComandoExcluir() {
-        return '';
+    private traduzirComandoExcluir(comandoExcluir: Excluir) {
+        let resultado = 'DELETE FROM '
+
+        resultado += `${comandoExcluir.tabela}`
+
+        // Condições
+        if (comandoExcluir.condicoes.length > 0) {
+            resultado += '\nWHERE ';
+            for (const condicao of comandoExcluir.condicoes) {
+                resultado += `${condicao.esquerda.lexema} ${this.traduzirOperador(condicao.operador)} ${condicao.direita} AND `;
+            }
+            resultado = resultado.slice(0, -5);
+        }
+
+        return resultado;
     }
 
     private traduzirComandoInserir(comandoInserir: Inserir) {
@@ -134,7 +147,7 @@ export class Tradutor {
 
         // Condições
         if (comandoSelecionar.condicoes.length > 0) {
-            resultado += '\n WHERE ';
+            resultado += '\nWHERE ';
             for (const condicao of comandoSelecionar.condicoes) {
                 resultado += `${condicao.esquerda.lexema} ${this.traduzirOperador(condicao.operador)} ${condicao.direita} AND `;
             }
