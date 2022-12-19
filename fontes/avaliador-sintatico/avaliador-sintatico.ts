@@ -162,7 +162,7 @@ export class AvaliadorSintatico extends AvaliadorSintaticoBase {
         // this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.PONTO_VIRGULA);
 
         return new Criar(
-            this.simbolos[this.atual].linha,
+            -1, // this.simbolos[this.atual].linha,
             nomeDaTabela.lexema,
             colunas
         );

@@ -18,7 +18,7 @@ export class Tradutor {
     private traduzirTipo(tipo: string) {
         switch (tipo) {
             case 'INTEIRO':
-                return 'INT';
+                return 'INTEGER';
             case 'LOGICO':
                 return 'BOOLEAN';
             case 'NUMERO':
