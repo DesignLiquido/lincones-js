@@ -121,7 +121,7 @@ export class Tradutor {
                     resultado += 'FALSE, ';
                     break;
                 case tiposDeSimbolos.TEXTO:
-                    resultado += `"${valor.literal}", `;
+                    resultado += `'${valor.literal}', `;
                     break;
                 case tiposDeSimbolos.VERDADEIRO:
                     resultado += 'TRUE, ';
