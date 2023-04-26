@@ -30,7 +30,7 @@ export default {
     para: tiposDeSimbolos.PARA,
     por: tiposDeSimbolos.POR,
     primaria: tiposDeSimbolos.PRIMARIA,
-    referencia: tiposDeSimbolos.REFERENCIA,
+    referenciar: tiposDeSimbolos.REFERENCIAR,
     renomear: tiposDeSimbolos.RENOMEAR,
     se: tiposDeSimbolos.SE,
     selecionar: tiposDeSimbolos.SELECIONAR,
