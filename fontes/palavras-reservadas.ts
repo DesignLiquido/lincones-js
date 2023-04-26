@@ -1,8 +1,11 @@
 import tiposDeSimbolos from './tipos-de-simbolos';
 
 export default {
+    adicionar: tiposDeSimbolos.ADICIONAR,
+    alterar: tiposDeSimbolos.ALTERAR,
     atualizar: tiposDeSimbolos.ATUALIZAR,
     auto: tiposDeSimbolos.AUTO,
+    coluna: tiposDeSimbolos.COLUNA,
     chave: tiposDeSimbolos.CHAVE,
     criar: tiposDeSimbolos.CRIAR,
     de: tiposDeSimbolos.DE,
@@ -11,6 +14,7 @@ export default {
     em: tiposDeSimbolos.EM,
     excluir: tiposDeSimbolos.EXCLUIR,
     falso: tiposDeSimbolos.FALSO,
+    identidade: tiposDeSimbolos.IDENTIDADE,
     incremento: tiposDeSimbolos.INCREMENTO,
     inserir: tiposDeSimbolos.INSERIR,
     inteiro: tiposDeSimbolos.INTEIRO,
@@ -19,6 +23,9 @@ export default {
     nulo: tiposDeSimbolos.NULO,
     onde: tiposDeSimbolos.ONDE,
     primaria: tiposDeSimbolos.PRIMARIA,
+    referencia: tiposDeSimbolos.REFERENCIA,
+    renomear: tiposDeSimbolos.RENOMEAR,
+    se: tiposDeSimbolos.SE,
     selecionar: tiposDeSimbolos.SELECIONAR,
     tabela: tiposDeSimbolos.TABELA,
     texto: tiposDeSimbolos.TEXTO,
