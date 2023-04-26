@@ -1,5 +1,5 @@
 import { Condicao } from '../construtos';
-import { Criar, Comando, Selecionar, Atualizar, Inserir, Excluir } from '../comandos';
+import { Alterar, Atualizar, Criar, Comando, Excluir, Selecionar, Inserir } from '../comandos';
 import {
     RetornoAvaliadorSintatico,
     RetornoLexador
@@ -13,6 +13,114 @@ export class AvaliadorSintatico extends AvaliadorSintaticoBase {
         if (!this.estaNoFinal()) {
             this.atual++;
         }
+    }
+
+    //https://pgdocptbr.sourceforge.io/pg80/ddl-alter.html
+    //ALTER TABLE produtos ADD COLUMN descricao text => alterar tabela produtos adicionar coluna descricao texto(50)
+    //ALTER TABLE produtos DROP COLUMN descricao;
+    //ALTER TABLE produtos RENAME COLUMN cod_prod TO cod_produto;
+    //ALTER TABLE produtos RENAME TO equipamentos;
+    private comandoAlterar(): Alterar {
+        // ["ALTERAR"]
+        this.consumir(tiposDeSimbolos.ALTERAR, 'Esperado palavra reservada "ALTERAR".');
+
+        // ["ALTERAR", "TABELA"]
+        this.consumir(tiposDeSimbolos.TABELA, 'Esperado palavra reservada "TABELA".');
+
+        // ["ALTERAR", "TABELA", "IDENTIFICADOR"]
+        const nomeDaTabela = this.consumir(tiposDeSimbolos.IDENTIFICADOR, 
+            'Esperado identificador de nome de tabela após palavra reservada "IDENTIFICADOR".');
+
+        // ["ALTERAR", "TABELA", "IDENTIFICADOR", "ADICIONAR"]
+        this.consumir(tiposDeSimbolos.ADICIONAR, 'Esperado palavra reservada "ADICIONAR".');
+
+        // ["ALTERAR", "TABELA", "IDENTIFICADOR", "ADICIONAR", "COLUNA"]
+        this.consumir(tiposDeSimbolos.COLUNA, 'Esperado palavra reservada "COLUNA".');
+
+        // ["ALTERAR", "TABELA", "IDENTIFICADOR", "ADICIONAR", "COLUNA", "IDENTIFICADOR"]
+        const nomeDaColuna = this.consumir(tiposDeSimbolos.IDENTIFICADOR, 
+            'Esperado identificador de nome de tabela após palavra reservada "IDENTIFICADOR".');
+
+        // if ([
+        //     tiposDeSimbolos.ADICIONAR, 
+        //     tiposDeSimbolos.EXCLUIR,
+        //     tiposDeSimbolos.RENOMEAR
+        // ].includes(this.simbolos[this.atual].tipo)) {
+        //     if(this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.RENOMEAR)){
+        //         // this.consumir(tiposDeSimbolos.PARA, 'Esperado palavra reservada "PARA", após \'RENOMEAR\'.');
+        //     }    
+        //     this.consumir(tiposDeSimbolos.ADICIONAR, 'Esperado palavra reservada "ADICIONAR", após nome da tabela.');    
+        //     this.consumir(tiposDeSimbolos.COLUNA, 'Esperado palavra reservada "COLUNA", após palavra reservada "ADICIONAR".');
+        // }
+        // else {
+        //     throw this.erro(this.simbolos[this.atual], `Esperado operador válido após identificador em descrição de alteração.`);
+        // }
+        
+        // Tipo de dados
+        let tipoColuna = null;
+        let tamanhoColuna = null;
+        switch (this.simbolos[this.atual].tipo) {
+            case tiposDeSimbolos.INTEIRO:
+                tipoColuna = tiposDeSimbolos.INTEIRO;
+                this.avancar();
+                break;
+            case tiposDeSimbolos.LOGICO:
+                tipoColuna = tiposDeSimbolos.LOGICO;
+                this.avancar();
+                break;
+            case tiposDeSimbolos.TEXTO:
+                tipoColuna = tiposDeSimbolos.TEXTO;
+                this.avancar();
+                if (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.PARENTESE_ESQUERDO)) {
+                    tamanhoColuna = this.consumir(tiposDeSimbolos.NUMERO, 
+                        'Esperado tamanho de texto de coluna em comando de criação de tabela.');
+                    this.consumir(tiposDeSimbolos.PARENTESE_DIREITO, 
+                        'Esperado parêntese direito após declaração de tamanho de coluna em comando de criação de tabela.');
+                }
+
+                break;
+            default:
+                throw this.erro(this.simbolos[this.atual], 
+                    'Esperado tipo de dados válido na definição de coluna em comando de criação de tabela.');
+        }
+
+        // Nulo/Não Nulo
+        let nulo = true;
+        if (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.NAO, tiposDeSimbolos.NULO)) {
+            const simboloAnterior = this.simbolos[this.atual - 1];
+            switch (simboloAnterior.tipo) {
+                case tiposDeSimbolos.NAO:
+                    this.consumir(tiposDeSimbolos.NULO, 
+                        'Esperado palavra reservada "NULO" após palavra reservada "NÃO" em declaração de coluna em comando de criação de tabela.');
+                    nulo = false;
+                    break;
+                case tiposDeSimbolos.NULO:
+                default:
+                    break;
+            }
+        }
+
+        // Chave primária?
+        let chavePrimaria = false;
+        let autoIncremento = false;
+        if (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.CHAVE)) {
+            switch (this.simbolos[this.atual].tipo) {
+                case tiposDeSimbolos.PRIMARIA:
+                    chavePrimaria = true;
+                    this.avancar();
+                    if (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.AUTO)) {
+                        this.consumir(tiposDeSimbolos.INCREMENTO, 
+                            'Esperado palavra reservada "INCREMENTO" após palavra reservada "AUTO" em declaração de coluna em comando de criação de tabela.');
+                        autoIncremento = true;
+                    }
+                    break;
+                default:
+                    throw this.erro(this.simbolos[this.atual], 
+                        'Esperado palavra reservada "PRIMARIA" após palavra reservada "CHAVE" na definição de coluna em comando de criação de tabela.');
+            }
+        }
+
+        return new Alterar(-1, nomeDaTabela.lexema, nomeDaColuna.lexema, tipoColuna, tamanhoColuna, nulo, chavePrimaria, false, autoIncremento);
     }
 
     private comandoAtualizar(): Atualizar {
@@ -303,6 +411,8 @@ export class AvaliadorSintatico extends AvaliadorSintaticoBase {
 
     private declaracao() {
         switch (this.simbolos[this.atual].tipo) {
+            case tiposDeSimbolos.ALTERAR:
+                return this.comandoAlterar();
             case tiposDeSimbolos.ATUALIZAR:
                 return this.comandoAtualizar();
             case tiposDeSimbolos.CRIAR:

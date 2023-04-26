@@ -182,7 +182,7 @@ export class Lexador {
                 break;
             case ';':
                 this.adicionarSimbolo(tiposDeSimbolos.PONTO_VIRGULA, ';');
-                this.linha++;
+                //this.linha++;
                 this.avancar();
                 break;
             case '"':

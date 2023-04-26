@@ -1,4 +1,5 @@
-import { Atualizar, Comando, Criar, Excluir, Inserir, Selecionar } from "../comandos";
+import { Alterar, Atualizar, Comando, Criar, Excluir, Inserir, Selecionar } from "../comandos";
+import { SimboloInterface } from "../interfaces";
 
 import tiposDeSimbolos from "../tipos-de-simbolos";
 
@@ -166,7 +167,33 @@ export class Tradutor {
         return resultado;
     }
 
+    //TODO: @Samuel @Daniel
+    //ALTER TABLE produtos ADD COLUMN descricao text(200)
+    traduzirComandoAlterar(comandoAlterar: Alterar): string {
+        let resultado = `ALTER TABLE ${comandoAlterar.tabela} ADD COLUMN ${comandoAlterar.nomeColuna} `;
+
+        switch(comandoAlterar.tipo){
+            case "TEXTO":
+                // eslint-disable-next-line no-case-declarations
+                const numero = comandoAlterar.tamanho as SimboloInterface;
+                resultado += `VARCHAR(${numero.literal})`;
+                break;
+            case "INTEIRO":
+                resultado += "INTEGER";
+                break;
+            case "LOGICO":
+                resultado += "BIT";
+                break;
+            case "NUMERO":
+                resultado += "NUMBER";
+                break;
+        }
+
+        return resultado; //ALTER TABLE produtos ADD COLUMN descricao text(200)
+    }
+
     dicionarioComandos = {
+        Alterar: this.traduzirComandoAlterar.bind(this),
         Atualizar: this.traduzirComandoAtualizar.bind(this),
         Criar: this.traduzirComandoCriar.bind(this),
         Excluir: this.traduzirComandoExcluir.bind(this),

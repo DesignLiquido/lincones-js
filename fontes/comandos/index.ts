@@ -1,3 +1,4 @@
+export * from './alterar';
 export * from './atualizar';
 export * from './comando';
 export * from './criar';
