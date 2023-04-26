@@ -15,6 +15,24 @@ describe('Tradutor', () => {
                 tradutor = new Tradutor();
             });
 
+            it('Alterar', () => {
+                const codigo = [
+                    'ALTERAR TABELA clientes ADICIONAR COLUNA email TEXTO(120)'
+                ];
+                const retornoLexador = lexador.mapear(codigo);
+                const retornoAvaliadorSintatico =
+                    avaliadorSintatico.analisar(retornoLexador);
+                const resultado = tradutor.traduzir(retornoAvaliadorSintatico.comandos);
+                expect(resultado).toBeTruthy();
+                expect(resultado).toContain('ALTER');
+                expect(resultado).toContain('TABLE');
+                expect(resultado).toContain('clientes');
+                expect(resultado).toContain('ADD');
+                expect(resultado).toContain('COLUMN');
+                expect(resultado).toContain('email');
+                expect(resultado).toContain('VARCHAR(120)');
+            });
+
             it('Atualizar', () => {
                 const codigo = [
                     'ATUALIZAR clientes DEFINIR NOME = "Pernalonga", IDADE = 18, ATIVO = VERDADEIRO, CASADO = FALSO ONDE ID = 10;'
@@ -53,6 +71,22 @@ describe('Tradutor', () => {
                 expect(resultado).toContain('INSERT');
                 expect(resultado).toContain('INTO');
                 expect(resultado).toContain('VALUES');
+            });
+
+            it('Excluir', () => {
+                const codigo = [
+                    'EXCLUIR clientes ONDE ID = 2'
+                ];
+                const retornoLexador = lexador.mapear(codigo);
+                const retornoAvaliadorSintatico =
+                    avaliadorSintatico.analisar(retornoLexador);
+                const resultado = tradutor.traduzir(retornoAvaliadorSintatico.comandos);
+                expect(resultado).toBeTruthy();
+                expect(resultado).toContain('DELETE');
+                expect(resultado).toContain('FROM');
+                expect(resultado).toContain('clientes');
+                expect(resultado).toContain('WHERE');
+                expect(resultado).toContain('ID = 2');
             });
 
             it('Selecionar', () => {

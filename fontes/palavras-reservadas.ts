@@ -27,6 +27,7 @@ export default {
     nulo: tiposDeSimbolos.NULO,
     onde: tiposDeSimbolos.ONDE,
     ordenar: tiposDeSimbolos.ORDENAR,
+    para: tiposDeSimbolos.PARA,
     por: tiposDeSimbolos.POR,
     primaria: tiposDeSimbolos.PRIMARIA,
     referencia: tiposDeSimbolos.REFERENCIA,
