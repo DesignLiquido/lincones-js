@@ -12,16 +12,16 @@ export class Alterar extends Comando {
     public autoIncremento: boolean;
 
     constructor(
-            linha: number, 
-            tabela: string, 
-            nomeColuna: string,
-            tipo: 'INTEIRO' | 'LOGICO' | 'NUMERO' | 'TEXTO',
-            tamanho?: number | Simbolo,
-            nulo?: boolean,
-            chavePrimaria?: boolean,
-            chaveEstrangeira?: boolean,
-            autoIncremento?: boolean) 
-    {
+        linha: number, 
+        tabela: string, 
+        nomeColuna: string,
+        tipo: 'INTEIRO' | 'LOGICO' | 'NUMERO' | 'TEXTO',
+        tamanho?: number | Simbolo,
+        nulo?: boolean,
+        chavePrimaria?: boolean,
+        chaveEstrangeira?: boolean,
+        autoIncremento?: boolean
+    ) {
         super(linha);
         this.tabela = tabela;
         this.nomeColuna = nomeColuna;

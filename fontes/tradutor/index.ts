@@ -1,10 +1,17 @@
-import { Alterar, Atualizar, Comando, Criar, Excluir, Inserir, Selecionar } from "../comandos";
-import { SimboloInterface } from "../interfaces";
+import {
+    Alterar,
+    Atualizar,
+    Comando,
+    Criar,
+    Excluir,
+    Inserir,
+    Selecionar
+} from '../comandos';
+import { SimboloInterface } from '../interfaces';
 
-import tiposDeSimbolos from "../tipos-de-simbolos";
+import tiposDeSimbolos from '../tipos-de-simbolos';
 
 export class Tradutor {
-
     private traduzirOperador(operador: string) {
         switch (operador) {
             case tiposDeSimbolos.IGUAL:
@@ -31,26 +38,36 @@ export class Tradutor {
 
     private traduzirComandoAtualizar(comandoAtualizar: Atualizar) {
         let resultado = 'UPDATE ';
-        resultado += `${comandoAtualizar.tabela}\nSET `
+        resultado += `${comandoAtualizar.tabela}\nSET `;
 
         for (const valorAtualizacao of comandoAtualizar.colunasEValores) {
-            if(valorAtualizacao.direita.tipo === tiposDeSimbolos.TEXTO){
-                resultado += `${valorAtualizacao.esquerda.lexema} = '${valorAtualizacao.direita.lexema}', `
+            if (valorAtualizacao.direita.tipo === tiposDeSimbolos.TEXTO) {
+                resultado += `${valorAtualizacao.esquerda.lexema} = '${valorAtualizacao.direita.lexema}', `;
                 continue;
             }
-            if([tiposDeSimbolos.VERDADEIRO, tiposDeSimbolos.FALSO].includes(valorAtualizacao.direita.tipo)){
-                resultado += `${valorAtualizacao.esquerda.lexema} = ${this.traduzirOperador(valorAtualizacao.direita.tipo)}, `;
+            if (
+                [tiposDeSimbolos.VERDADEIRO, tiposDeSimbolos.FALSO].includes(
+                    valorAtualizacao.direita.tipo
+                )
+            ) {
+                resultado += `${
+                    valorAtualizacao.esquerda.lexema
+                } = ${this.traduzirOperador(valorAtualizacao.direita.tipo)}, `;
                 continue;
             }
             resultado += `${valorAtualizacao.esquerda.lexema} = ${valorAtualizacao.direita.lexema}, `;
         }
 
         resultado = resultado.slice(0, -2);
-        resultado += `\nWHERE `
+        resultado += `\nWHERE `;
 
         if (comandoAtualizar.condicoes.length > 0) {
             for (const condicao of comandoAtualizar.condicoes) {
-                resultado += `${condicao.esquerda.lexema} ${this.traduzirOperador(condicao.operador)} ${condicao.direita} AND `;
+                resultado += `${
+                    condicao.esquerda.lexema
+                } ${this.traduzirOperador(condicao.operador)} ${
+                    condicao.direita
+                } AND `;
             }
 
             resultado = resultado.slice(0, -5);
@@ -65,7 +82,9 @@ export class Tradutor {
         resultado += `${comandoCriar.tabela} (\n`;
 
         for (const coluna of comandoCriar.colunas) {
-            resultado += `    ${coluna.nomeColuna} ${this.traduzirTipo(coluna.tipo)} `;
+            resultado += `    ${coluna.nomeColuna} ${this.traduzirTipo(
+                coluna.tipo
+            )} `;
             if (coluna.nulo) {
                 resultado += `NULL `;
             } else {
@@ -89,15 +108,19 @@ export class Tradutor {
     }
 
     private traduzirComandoExcluir(comandoExcluir: Excluir) {
-        let resultado = 'DELETE FROM '
+        let resultado = 'DELETE FROM ';
 
-        resultado += `${comandoExcluir.tabela}`
+        resultado += `${comandoExcluir.tabela}`;
 
         // Condições
         if (comandoExcluir.condicoes.length > 0) {
             resultado += '\nWHERE ';
             for (const condicao of comandoExcluir.condicoes) {
-                resultado += `${condicao.esquerda.lexema} ${this.traduzirOperador(condicao.operador)} ${condicao.direita} AND `;
+                resultado += `${
+                    condicao.esquerda.lexema
+                } ${this.traduzirOperador(condicao.operador)} ${
+                    condicao.direita
+                } AND `;
             }
             resultado = resultado.slice(0, -5);
         }
@@ -144,7 +167,7 @@ export class Tradutor {
 
         // Colunas
         if (comandoSelecionar.tudo) {
-            resultado += '*'
+            resultado += '*';
         } else {
             for (const coluna of comandoSelecionar.colunas) {
                 resultado += coluna + ', ';
@@ -159,7 +182,11 @@ export class Tradutor {
         if (comandoSelecionar.condicoes.length > 0) {
             resultado += '\nWHERE ';
             for (const condicao of comandoSelecionar.condicoes) {
-                resultado += `${condicao.esquerda.lexema} ${this.traduzirOperador(condicao.operador)} ${condicao.direita} AND `;
+                resultado += `${
+                    condicao.esquerda.lexema
+                } ${this.traduzirOperador(condicao.operador)} ${
+                    condicao.direita
+                } AND `;
             }
             resultado = resultado.slice(0, -5);
         }
@@ -172,20 +199,20 @@ export class Tradutor {
     traduzirComandoAlterar(comandoAlterar: Alterar): string {
         let resultado = `ALTER TABLE ${comandoAlterar.tabela} ADD COLUMN ${comandoAlterar.nomeColuna} `;
 
-        switch(comandoAlterar.tipo){
-            case "TEXTO":
+        switch (comandoAlterar.tipo) {
+            case 'TEXTO':
                 // eslint-disable-next-line no-case-declarations
                 const numero = comandoAlterar.tamanho as SimboloInterface;
                 resultado += `VARCHAR(${numero.literal})`;
                 break;
-            case "INTEIRO":
-                resultado += "INTEGER";
+            case 'INTEIRO':
+                resultado += 'INTEGER';
                 break;
-            case "LOGICO":
-                resultado += "BIT";
+            case 'LOGICO':
+                resultado += 'BIT';
                 break;
-            case "NUMERO":
-                resultado += "NUMBER";
+            case 'NUMERO':
+                resultado += 'NUMBER';
                 break;
         }
 
@@ -199,13 +226,15 @@ export class Tradutor {
         Excluir: this.traduzirComandoExcluir.bind(this),
         Inserir: this.traduzirComandoInserir.bind(this),
         Selecionar: this.traduzirComandoSelecionar.bind(this)
-    }
+    };
 
     traduzir(comandos: Comando[]) {
         let resultado = '';
 
-        for (const comando of comandos.filter(c => c)) {
-            resultado += `${this.dicionarioComandos[comando.constructor.name](comando)} \n`;
+        for (const comando of comandos.filter((c) => c)) {
+            resultado += `${this.dicionarioComandos[comando.constructor.name](
+                comando
+            )} \n`;
         }
 
         return resultado;

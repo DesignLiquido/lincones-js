@@ -7,11 +7,11 @@ export class Atualizar extends Comando {
     condicoes: Condicao[];
 
     constructor(
-            linha: number, 
-            tabela: string, 
-            colunasEValores: { esquerda: any, direita: any }[], 
-            condicoes: Condicao[]) 
-    {
+        linha: number, 
+        tabela: string, 
+        colunasEValores: { esquerda: any, direita: any }[], 
+        condicoes: Condicao[]
+    ) {
         super(linha);
         this.tabela = tabela;
         this.colunasEValores = colunasEValores;
