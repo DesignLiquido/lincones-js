@@ -7,7 +7,9 @@ import {
     Inserir,
     Selecionar
 } from '../comandos';
+import { Coluna } from '../construtos';
 import { SimboloInterface } from '../interfaces';
+import { Simbolo } from '../lexador/simbolo';
 
 import tiposDeSimbolos from '../tipos-de-simbolos';
 
@@ -17,6 +19,12 @@ import tiposDeSimbolos from '../tipos-de-simbolos';
  * alguns comandos quando for o caso.
  */
 export class Tradutor {
+    tamanhoIndentacao: number;
+
+    constructor(tamanhoIndentacao = 4) {
+        this.tamanhoIndentacao = tamanhoIndentacao;
+    }
+
     protected traduzirOperador(operador: string) {
         switch (operador) {
             case tiposDeSimbolos.IGUAL:
@@ -39,6 +47,24 @@ export class Tradutor {
             case 'TEXTO':
                 return 'VARCHAR';
         }
+    }
+
+    protected traduzirColunaComTipo(coluna: Coluna) {
+        let resultado = `${" ".repeat(this.tamanhoIndentacao)}${coluna.nomeColuna} ${this.traduzirTipo(
+                coluna.tipo
+            )} `;
+
+        if (coluna.tamanho) {
+            resultado += `(${coluna.tamanho.lexema}) `;
+        }
+
+        if (coluna.nulo) {
+            resultado += `NULL `;
+        } else {
+            resultado += `NOT NULL `;
+        }
+
+        return resultado;
     }
 
     protected traduzirComandoAtualizar(comandoAtualizar: Atualizar) {
@@ -87,14 +113,7 @@ export class Tradutor {
         resultado += `${comandoCriar.tabela} (\n`;
 
         for (const coluna of comandoCriar.colunas) {
-            resultado += `    ${coluna.nomeColuna} ${this.traduzirTipo(
-                coluna.tipo
-            )} `;
-            if (coluna.nulo) {
-                resultado += `NULL `;
-            } else {
-                resultado += `NOT NULL `;
-            }
+            resultado += this.traduzirColunaComTipo(coluna);
 
             if (coluna.chavePrimaria) {
                 resultado += 'PRIMARY KEY ';

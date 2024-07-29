@@ -15,6 +15,23 @@ describe('Tradutor', () => {
                 tradutor = new Tradutor();
             });
 
+            it('Criar', () => {
+                const codigo = [
+                    'CRIAR TABELA clientes (id INTEIRO CHAVE PRIMARIA, email TEXTO(120))'
+                ];
+                const retornoLexador = lexador.mapear(codigo);
+                const retornoAvaliadorSintatico =
+                    avaliadorSintatico.analisar(retornoLexador);
+                const resultado = tradutor.traduzir(retornoAvaliadorSintatico.comandos);
+
+                expect(resultado).toBeTruthy();
+                expect(resultado).toContain('CREATE');
+                expect(resultado).toContain('TABLE');
+                expect(resultado).toContain('clientes');
+                expect(resultado).toContain('email');
+                expect(resultado).toContain('VARCHAR');
+            });
+
             it('Alterar', () => {
                 const codigo = [
                     'ALTERAR TABELA clientes ADICIONAR COLUNA email TEXTO(120)'
