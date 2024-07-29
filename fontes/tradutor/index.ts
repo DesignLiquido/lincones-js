@@ -11,8 +11,13 @@ import { SimboloInterface } from '../interfaces';
 
 import tiposDeSimbolos from '../tipos-de-simbolos';
 
+/**
+ * Este tradutor traduz sentenças em SQL ANSI, e a ideia é poder
+ * utilizar para outros tradutores futuros, com pequenas nuances em
+ * alguns comandos quando for o caso.
+ */
 export class Tradutor {
-    private traduzirOperador(operador: string) {
+    protected traduzirOperador(operador: string) {
         switch (operador) {
             case tiposDeSimbolos.IGUAL:
                 return '=';
@@ -23,7 +28,7 @@ export class Tradutor {
         }
     }
 
-    private traduzirTipo(tipo: string) {
+    protected traduzirTipo(tipo: string) {
         switch (tipo) {
             case 'INTEIRO':
                 return 'INTEGER';
@@ -36,7 +41,7 @@ export class Tradutor {
         }
     }
 
-    private traduzirComandoAtualizar(comandoAtualizar: Atualizar) {
+    protected traduzirComandoAtualizar(comandoAtualizar: Atualizar) {
         let resultado = 'UPDATE ';
         resultado += `${comandoAtualizar.tabela}\nSET `;
 
@@ -76,7 +81,7 @@ export class Tradutor {
         return resultado;
     }
 
-    private traduzirComandoCriar(comandoCriar: Criar) {
+    protected traduzirComandoCriar(comandoCriar: Criar) {
         let resultado = 'CREATE TABLE ';
 
         resultado += `${comandoCriar.tabela} (\n`;
@@ -107,7 +112,7 @@ export class Tradutor {
         return resultado;
     }
 
-    private traduzirComandoExcluir(comandoExcluir: Excluir) {
+    protected traduzirComandoExcluir(comandoExcluir: Excluir) {
         let resultado = 'DELETE FROM ';
 
         resultado += `${comandoExcluir.tabela}`;
@@ -128,7 +133,7 @@ export class Tradutor {
         return resultado;
     }
 
-    private traduzirComandoInserir(comandoInserir: Inserir) {
+    protected traduzirComandoInserir(comandoInserir: Inserir) {
         let resultado = 'INSERT INTO ';
         resultado += `${comandoInserir.tabela} (`;
 
@@ -162,7 +167,7 @@ export class Tradutor {
         return resultado;
     }
 
-    private traduzirComandoSelecionar(comandoSelecionar: Selecionar) {
+    protected traduzirComandoSelecionar(comandoSelecionar: Selecionar) {
         let resultado = 'SELECT ';
 
         // Colunas
@@ -194,14 +199,11 @@ export class Tradutor {
         return resultado;
     }
 
-    //TODO: @Samuel @Daniel
-    //ALTER TABLE produtos ADD COLUMN descricao text(200)
-    traduzirComandoAlterar(comandoAlterar: Alterar): string {
+    protected traduzirComandoAlterar(comandoAlterar: Alterar): string {
         let resultado = `ALTER TABLE ${comandoAlterar.tabela} ADD COLUMN ${comandoAlterar.nomeColuna} `;
 
         switch (comandoAlterar.tipo) {
             case 'TEXTO':
-                // eslint-disable-next-line no-case-declarations
                 const numero = comandoAlterar.tamanho as SimboloInterface;
                 resultado += `VARCHAR(${numero.literal})`;
                 break;
@@ -216,7 +218,7 @@ export class Tradutor {
                 break;
         }
 
-        return resultado; //ALTER TABLE produtos ADD COLUMN descricao text(200)
+        return resultado;
     }
 
     dicionarioComandos = {

@@ -1,4 +1,4 @@
-import { Coluna } from '../avaliador-sintatico';
+import { Coluna } from '../construtos';
 import { Comando } from './comando';
 
 export class Criar extends Comando {

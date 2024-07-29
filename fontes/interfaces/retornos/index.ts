@@ -1,4 +1,4 @@
-import { SimboloInterface } from '..';
+import { SimboloInterface } from '../simbolo-interface';
 import { ErroAvaliadorSintatico } from '../../avaliador-sintatico';
 import { Comando } from '../../comandos';
 
