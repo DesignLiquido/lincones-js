@@ -1,28 +1,33 @@
 import { Simbolo } from "../lexador/simbolo";
 
 export class Coluna {
-    public nomeColuna: string;
-    public tipo: 'INTEIRO' | 'LOGICO' | 'NUMERO' | 'TEXTO';
-    public tamanho: number | Simbolo;
-    public nulo: boolean;
-    public chavePrimaria: boolean;
-    public chaveEstrangeira: boolean;
-    public autoIncremento: boolean;
+    nomeColuna: string;
+    tipo: 'INTEIRO' | 'LOGICO' | 'NUMERO' | 'TEXTO';
+    tamanho: Simbolo | undefined;
+    nulo: boolean;
+    chavePrimaria: boolean;
+    chaveEstrangeira: boolean;
+    autoIncremento: boolean;
 
     constructor(
         nomeColuna: string,
-        tipo: 'INTEIRO' | 'LOGICO' | 'NUMERO' | 'TEXTO',
-        tamanho?: number | Simbolo,
+        tipo: string,
+        tamanho?: Simbolo,
         nulo?: boolean,
         chavePrimaria?: boolean,
         chaveEstrangeira?: boolean,
         autoIncremento?: boolean
     ) {
         this.nomeColuna = nomeColuna;
-        this.tipo = tipo;
-        this.tamanho = tamanho || -1;
+        const tipoColunaResolvido = tipo.toUpperCase();
+        if (!['INTEIRO', 'LOGICO', 'NUMERO', 'TEXTO'].includes(tipoColunaResolvido)) {
+            throw new Error(`Tipo de dados de coluna inválido: ${tipoColunaResolvido}`);
+        }
+
+        this.tipo = tipoColunaResolvido as 'INTEIRO' | 'LOGICO' | 'NUMERO' | 'TEXTO';
+        this.tamanho = tamanho;
         
-        this.nulo = nulo || false;
+        this.nulo = nulo || true;
         this.chavePrimaria = chavePrimaria || false;
         this.chaveEstrangeira = chaveEstrangeira || false;
         this.autoIncremento = autoIncremento || false;

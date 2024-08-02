@@ -18,6 +18,8 @@ import { Coluna } from '../construtos/coluna';
 import { Condicao } from '../construtos';
 
 import tiposDeSimbolos from '../tipos-de-simbolos';
+import { OperacaoAlteracaoTabela } from '../construtos/operacao-alteracao-tabela';
+import { Restricao } from '../construtos/restricao';
 
 export abstract class AvaliadorSintaticoBase
     implements AvaliadorSintaticoInterface
@@ -79,99 +81,66 @@ export abstract class AvaliadorSintaticoBase
         }
     }
 
-    //https://pgdocptbr.sourceforge.io/pg80/ddl-alter.html
-    //ALTER TABLE produtos ADD COLUMN descricao text => alterar tabela produtos adicionar coluna descricao texto(50)
-    //ALTER TABLE produtos DROP COLUMN descricao;
-    //ALTER TABLE produtos RENAME COLUMN cod_prod TO cod_produto;
-    //ALTER TABLE produtos RENAME TO equipamentos;
-    protected comandoAlterar(): Alterar {
-        // ["ALTERAR"]
-        const simboloAlterar = this.consumir(
-            tiposDeSimbolos.ALTERAR,
-            'Esperado palavra reservada "ALTERAR".'
-        );
-
-        // ["ALTERAR", "TABELA"]
-        this.consumir(
-            tiposDeSimbolos.TABELA,
-            'Esperado palavra reservada "TABELA".'
-        );
-
-        // ["ALTERAR", "TABELA", "IDENTIFICADOR"]
-        const nomeDaTabela = this.consumir(
+    private logicaManipulacaoColuna(simboloOperacao: SimboloInterface): Coluna {
+        const simboloNomeDaColuna = this.consumir(
             tiposDeSimbolos.IDENTIFICADOR,
             'Esperado identificador de nome de tabela após palavra reservada "IDENTIFICADOR".'
         );
 
-        // ["ALTERAR", "TABELA", "IDENTIFICADOR", "ADICIONAR"]
-        this.consumir(
-            tiposDeSimbolos.ADICIONAR,
-            'Esperado palavra reservada "ADICIONAR".'
-        );
-
-        // ["ALTERAR", "TABELA", "IDENTIFICADOR", "ADICIONAR", "COLUNA"]
-        this.consumir(
-            tiposDeSimbolos.COLUNA,
-            'Esperado palavra reservada "COLUNA".'
-        );
-
-        // ["ALTERAR", "TABELA", "IDENTIFICADOR", "ADICIONAR", "COLUNA", "IDENTIFICADOR"]
-        const nomeDaColuna = this.consumir(
-            tiposDeSimbolos.IDENTIFICADOR,
-            'Esperado identificador de nome de tabela após palavra reservada "IDENTIFICADOR".'
-        );
-
-        // if ([
-        //     tiposDeSimbolos.ADICIONAR,
-        //     tiposDeSimbolos.EXCLUIR,
-        //     tiposDeSimbolos.RENOMEAR
-        // ].includes(this.simbolos[this.atual].tipo)) {
-        //     if(this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.RENOMEAR)){
-        //         // this.consumir(tiposDeSimbolos.PARA, 'Esperado palavra reservada "PARA", após \'RENOMEAR\'.');
-        //     }
-        //     this.consumir(tiposDeSimbolos.ADICIONAR, 'Esperado palavra reservada "ADICIONAR", após nome da tabela.');
-        //     this.consumir(tiposDeSimbolos.COLUNA, 'Esperado palavra reservada "COLUNA", após palavra reservada "ADICIONAR".');
-        // }
-        // else {
-        //     throw this.erro(this.simbolos[this.atual], `Esperado operador válido após identificador em descrição de alteração.`);
-        // }
-
-        // Tipo de dados
-        let tipoColuna = null;
-        let tamanhoColuna = null;
-        switch (this.simbolos[this.atual].tipo) {
-            case tiposDeSimbolos.INTEIRO:
-                tipoColuna = tiposDeSimbolos.INTEIRO;
-                this.avancar();
-                break;
-            case tiposDeSimbolos.LOGICO:
-                tipoColuna = tiposDeSimbolos.LOGICO;
-                this.avancar();
-                break;
-            case tiposDeSimbolos.TEXTO:
-                tipoColuna = tiposDeSimbolos.TEXTO;
-                this.avancar();
-                if (
-                    this.verificarSeSimboloAtualEIgualA(
-                        tiposDeSimbolos.PARENTESE_ESQUERDO
-                    )
-                ) {
-                    tamanhoColuna = this.consumir(
-                        tiposDeSimbolos.NUMERO,
-                        'Esperado tamanho de texto de coluna em comando de criação de tabela.'
-                    );
-                    this.consumir(
-                        tiposDeSimbolos.PARENTESE_DIREITO,
-                        'Esperado parêntese direito após declaração de tamanho de coluna em comando de criação de tabela.'
-                    );
-                }
-
-                break;
-            default:
-                throw this.erro(
-                    this.simbolos[this.atual],
-                    'Esperado tipo de dados válido na definição de coluna em comando de criação de tabela.'
+        switch (simboloOperacao.tipo) {
+            case tiposDeSimbolos.ADICIONAR:
+                return this.logicaAdicionarOuAlterarColuna(
+                    simboloNomeDaColuna
                 );
+
+            case tiposDeSimbolos.ALTERAR:
+                break;
+            case tiposDeSimbolos.EXCLUIR:
+                break;
+            case tiposDeSimbolos.RENOMEAR:
+                break;
+        }
+
+        /* return new Coluna(
+            simboloNomeDaColuna.lexema, 
+        ); */
+        return undefined;
+    }
+
+    private logicaManipulacaoRestricao(simboloOperacao: SimboloInterface): Restricao {
+        return undefined;
+    }
+
+    private logicaAdicionarOuAlterarColuna(
+        simboloNomeDaColuna: SimboloInterface
+    ): Coluna {
+        // Tipo de dados
+        const simboloTipoElemento = this.avancarEDevolverAnterior();
+        let tamanhoElemento = null;
+
+        if (![
+            tiposDeSimbolos.INTEIRO, 
+            tiposDeSimbolos.LOGICO, 
+            tiposDeSimbolos.TEXTO
+        ].includes(simboloTipoElemento.tipo)) {
+            throw this.erro(simboloTipoElemento, `Tipo de coluna inválido para operação de adição ou alteração de coluna. Tipos válidos: inteiro, lógico ou texto. Obtido: ${simboloTipoElemento.tipo}.`);
+        }
+
+        if (simboloTipoElemento.tipo === tiposDeSimbolos.TEXTO) {
+            if (
+                this.verificarSeSimboloAtualEIgualA(
+                    tiposDeSimbolos.PARENTESE_ESQUERDO
+                )
+            ) {
+                tamanhoElemento = this.consumir(
+                    tiposDeSimbolos.NUMERO,
+                    'Esperado tamanho de texto de coluna em comando de criação de tabela.'
+                );
+                this.consumir(
+                    tiposDeSimbolos.PARENTESE_DIREITO,
+                    'Esperado parêntese direito após declaração de tamanho de coluna em comando de criação de tabela.'
+                );
+            }
         }
 
         // Nulo/Não Nulo
@@ -225,16 +194,75 @@ export abstract class AvaliadorSintaticoBase
             }
         }
 
-        return new Alterar(
-            simboloAlterar.linha,
-            nomeDaTabela.lexema,
-            nomeDaColuna.lexema,
-            tipoColuna,
-            tamanhoColuna,
+        return new Coluna(
+            simboloNomeDaColuna.lexema, 
+            simboloTipoElemento.lexema,
+            tamanhoElemento ? tamanhoElemento : undefined,
             nulo,
             chavePrimaria,
             false,
-            autoIncremento
+            false
+        )
+    }
+
+    //https://pgdocptbr.sourceforge.io/pg80/ddl-alter.html
+    //ALTER TABLE produtos ADD COLUMN descricao text => alterar tabela produtos adicionar coluna descricao texto(50)
+    //ALTER TABLE produtos DROP COLUMN descricao;
+    //ALTER TABLE produtos RENAME COLUMN cod_prod TO cod_produto;
+    //ALTER TABLE produtos RENAME TO equipamentos;
+    protected comandoAlterar(): Alterar {
+        const simboloAlterar = this.consumir(
+            tiposDeSimbolos.ALTERAR,
+            'Esperado palavra reservada "ALTERAR".'
+        );
+
+        this.consumir(
+            tiposDeSimbolos.TABELA,
+            'Esperado palavra reservada "TABELA".'
+        );
+
+        const nomeDaTabela = this.consumir(
+            tiposDeSimbolos.IDENTIFICADOR,
+            'Esperado identificador de nome de tabela após palavra reservada "IDENTIFICADOR".'
+        );
+
+        const operacoes = [];
+        while (this.verificarSeSimboloAtualEIgualA(
+            tiposDeSimbolos.ADICIONAR,
+            tiposDeSimbolos.ALTERAR,
+            tiposDeSimbolos.EXCLUIR,
+            tiposDeSimbolos.RENOMEAR
+        )) {
+            const simboloOperacao = this.simbolos[this.atual - 1];
+            let elemento: Coluna | Restricao;
+
+            switch (this.simbolos[this.atual].tipo) {
+                case tiposDeSimbolos.COLUNA:
+                    this.avancar();
+                    elemento = this.logicaManipulacaoColuna(simboloOperacao);
+                    break;
+                case tiposDeSimbolos.RESTRICAO:
+                    break;
+                default:
+                    throw this.erro(this.simbolos[this.atual], `Tipo de elemento de tabela ou visão inválido para operação "${simboloOperacao.lexema}": ${this.simbolos[this.atual].lexema}.`);
+            }
+
+            operacoes.push(
+                new OperacaoAlteracaoTabela(
+                    simboloOperacao.lexema,
+                    elemento
+                )
+            );
+        }
+
+        if (operacoes.length <= 0) {
+            throw this.erro(this.simbolos[this.atual - 1], `Esperado pelo menos uma operação em um comando de alteração de tabela.`)
+        }
+
+        return new Alterar(
+            simboloAlterar.linha,
+            nomeDaTabela.lexema,
+            operacoes
         );
     }
 

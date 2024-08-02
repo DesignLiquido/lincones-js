@@ -8,8 +8,7 @@ import {
     Selecionar
 } from '../comandos';
 import { Coluna } from '../construtos';
-import { SimboloInterface } from '../interfaces';
-import { Simbolo } from '../lexador/simbolo';
+import { Restricao } from '../construtos/restricao';
 
 import tiposDeSimbolos from '../tipos-de-simbolos';
 
@@ -50,9 +49,9 @@ export class Tradutor {
     }
 
     protected traduzirColunaComTipo(coluna: Coluna) {
-        let resultado = `${" ".repeat(this.tamanhoIndentacao)}${coluna.nomeColuna} ${this.traduzirTipo(
-                coluna.tipo
-            )} `;
+        let resultado = `${' '.repeat(this.tamanhoIndentacao)}${
+            coluna.nomeColuna
+        } ${this.traduzirTipo(coluna.tipo)} `;
 
         if (coluna.tamanho) {
             resultado += `(${coluna.tamanho.lexema}) `;
@@ -218,23 +217,38 @@ export class Tradutor {
         return resultado;
     }
 
-    protected traduzirComandoAlterar(comandoAlterar: Alterar): string {
-        let resultado = `ALTER TABLE ${comandoAlterar.tabela} ADD COLUMN ${comandoAlterar.nomeColuna} `;
+    private logicaManipulacaoColunas(elemento: Coluna | Restricao) {
+        if (elemento instanceof Coluna) {
+            let formatacaoColuna = `COLUMN ${elemento.nomeColuna} ${this.traduzirTipo(elemento.tipo)}`;
+            if (elemento.tipo === 'TEXTO') {
+                formatacaoColuna += `(${elemento.tamanho.lexema})`;
+            }
 
-        switch (comandoAlterar.tipo) {
-            case 'TEXTO':
-                const numero = comandoAlterar.tamanho as SimboloInterface;
-                resultado += `VARCHAR(${numero.literal})`;
-                break;
-            case 'INTEIRO':
-                resultado += 'INTEGER';
-                break;
-            case 'LOGICO':
-                resultado += 'BIT';
-                break;
-            case 'NUMERO':
-                resultado += 'NUMBER';
-                break;
+            return formatacaoColuna;
+        }
+
+        return 'CONSTRAINT';    
+    }
+
+    protected traduzirComandoAlterar(comandoAlterar: Alterar): string {
+        let resultado = `ALTER TABLE ${comandoAlterar.nomeEntidade} `;
+
+        for (const operacao of comandoAlterar.operacoes) {
+            switch (operacao.tipo) {
+                case 'ADICIONAR':
+                    resultado += `ADD ${this.logicaManipulacaoColunas(
+                        operacao.elemento
+                    )}`;
+                    break;
+                case 'ALTERAR':
+                    resultado += 'INTEGER';
+                    break;
+                case 'EXCLUIR':
+                    resultado += 'BIT';
+                    break;
+                case 'RENOMEAR':
+                    break;
+            }
         }
 
         return resultado;
