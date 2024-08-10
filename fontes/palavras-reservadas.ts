@@ -15,6 +15,7 @@ export default {
     e: tiposDeSimbolos.E,
     entre: tiposDeSimbolos.ENTRE,
     em: tiposDeSimbolos.EM,
+    estrangeira: tiposDeSimbolos.ESTRANGEIRA,
     excluir: tiposDeSimbolos.EXCLUIR,
     falso: tiposDeSimbolos.FALSO,
     identidade: tiposDeSimbolos.IDENTIDADE,
@@ -35,12 +36,15 @@ export default {
     primária: tiposDeSimbolos.PRIMARIA,
     referencia: tiposDeSimbolos.REFERENCIA,
     renomear: tiposDeSimbolos.RENOMEAR,
+    remover: tiposDeSimbolos.REMOVER,
     restricao: tiposDeSimbolos.RESTRICAO,
     restrição: tiposDeSimbolos.RESTRICAO,
     se: tiposDeSimbolos.SE,
     selecionar: tiposDeSimbolos.SELECIONAR,
     tabela: tiposDeSimbolos.TABELA,
     texto: tiposDeSimbolos.TEXTO,
+    unica: tiposDeSimbolos.UNICA,
+    única: tiposDeSimbolos.UNICA,
     valores: tiposDeSimbolos.VALORES,
     verdadeiro: tiposDeSimbolos.VERDADEIRO
 };

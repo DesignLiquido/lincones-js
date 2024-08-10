@@ -84,30 +84,45 @@ export abstract class AvaliadorSintaticoBase
     private logicaManipulacaoColuna(simboloOperacao: SimboloInterface): Coluna {
         const simboloNomeDaColuna = this.consumir(
             tiposDeSimbolos.IDENTIFICADOR,
-            'Esperado identificador de nome de tabela após palavra reservada "IDENTIFICADOR".'
+            'Esperado identificador de nome de tabela após palavra reservada "TABELA".'
         );
 
         switch (simboloOperacao.tipo) {
             case tiposDeSimbolos.ADICIONAR:
+            case tiposDeSimbolos.ALTERAR:
                 return this.logicaAdicionarOuAlterarColuna(
                     simboloNomeDaColuna
                 );
 
-            case tiposDeSimbolos.ALTERAR:
-                break;
             case tiposDeSimbolos.EXCLUIR:
                 break;
             case tiposDeSimbolos.RENOMEAR:
                 break;
         }
 
-        /* return new Coluna(
-            simboloNomeDaColuna.lexema, 
-        ); */
         return undefined;
     }
 
-    private logicaManipulacaoRestricao(simboloOperacao: SimboloInterface): Restricao {
+    private logicaManipulacaoRestricao(simboloNomeTabela: SimboloInterface, simboloOperacao: SimboloInterface): Restricao {
+        const simboloNomeDaRestricao = this.consumir(
+            tiposDeSimbolos.IDENTIFICADOR,
+            'Esperado identificador de nome de restrição após palavra reservada "RESTRIÇÃO".'
+        );
+
+        switch (simboloOperacao.tipo) {
+            case tiposDeSimbolos.ADICIONAR:
+            case tiposDeSimbolos.ALTERAR:
+                return this.logicaAdicionarOuAlterarRestricao(
+                    simboloNomeTabela,
+                    simboloNomeDaRestricao
+                );
+
+            case tiposDeSimbolos.EXCLUIR:
+                break;
+            case tiposDeSimbolos.RENOMEAR:
+                break;
+        }
+
         return undefined;
     }
 
@@ -205,6 +220,41 @@ export abstract class AvaliadorSintaticoBase
         )
     }
 
+    private logicaAdicionarOuAlterarRestricao(
+        simboloNomeDaTabela: SimboloInterface,
+        simboloNomeDaColuna: SimboloInterface
+    ): Restricao {
+        // Tipo de restrição
+        const simboloTipoRestricao = this.avancarEDevolverAnterior();
+        switch (simboloTipoRestricao.tipo) {
+            case tiposDeSimbolos.CHAVE:
+                return this.logicaRestricaoChave(simboloNomeDaTabela);
+            case tiposDeSimbolos.UNICA:
+                break;
+        }
+
+        return undefined;
+    }
+
+    private logicaRestricaoChave(simboloNomeDaTabela: SimboloInterface) {
+        const simboloTipoChave = this.avancarEDevolverAnterior();
+        switch (simboloTipoChave.tipo) {
+            case tiposDeSimbolos.PRIMARIA:
+                break;
+            case tiposDeSimbolos.ESTRANGEIRA:
+                this.consumir(tiposDeSimbolos.PARENTESE_ESQUERDO, 'Esperado abertura de parêntese após palavra reservada "ESTRANGEIRA".');
+                const nomeColunaChave = this.consumir(tiposDeSimbolos.IDENTIFICADOR, 'Esperado nome de coluna para restrição do tipo chave estrangeira.');
+                this.consumir(tiposDeSimbolos.PARENTESE_DIREITO, 'Esperado fechamento de parêntese após nome de coluna para restrição do tipo chave estrangeira.');
+                this.consumir(tiposDeSimbolos.REFERENCIA, 'Esperado palavra reservada "REFERENCIA" após definição de coluna para restrição do tipo chave estrangeira.');
+                const nomeTabelaReferenciada = this.consumir(tiposDeSimbolos.IDENTIFICADOR, 'Esperado nome da tabela referenciada por restrição do tipo chave estrangeira.');
+                this.consumir(tiposDeSimbolos.PARENTESE_ESQUERDO, 'Esperado abertura de parêntese após palavra reservada "REFERENCIA".');
+                const nomeColunaReferenciada = this.consumir(tiposDeSimbolos.IDENTIFICADOR, 'Esperado nome de coluna referenciada para restrição do tipo chave estrangeira.');
+                this.consumir(tiposDeSimbolos.PARENTESE_DIREITO, 'Esperado fechamento de parêntese após nome de coluna referenciada para restrição do tipo chave estrangeira.');
+                this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.PONTO_VIRGULA);
+                return new Restricao("CHAVE_ESTRANGEIRA", simboloNomeDaTabela.lexema, [nomeColunaChave.lexema], nomeTabelaReferenciada.lexema, [nomeColunaReferenciada.lexema]);
+        }
+    }
+
     //https://pgdocptbr.sourceforge.io/pg80/ddl-alter.html
     //ALTER TABLE produtos ADD COLUMN descricao text => alterar tabela produtos adicionar coluna descricao texto(50)
     //ALTER TABLE produtos DROP COLUMN descricao;
@@ -242,6 +292,8 @@ export abstract class AvaliadorSintaticoBase
                     elemento = this.logicaManipulacaoColuna(simboloOperacao);
                     break;
                 case tiposDeSimbolos.RESTRICAO:
+                    this.avancar();
+                    elemento = this.logicaManipulacaoRestricao(nomeDaTabela, simboloOperacao);
                     break;
                 default:
                     throw this.erro(this.simbolos[this.atual], `Tipo de elemento de tabela ou visão inválido para operação "${simboloOperacao.lexema}": ${this.simbolos[this.atual].lexema}.`);
@@ -320,6 +372,9 @@ export abstract class AvaliadorSintaticoBase
 
         // Condições
         const condicoes = this.logicaComumCondicoes('seleção');
+
+        // Ponto-e-vírgula opcional
+        this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.PONTO_VIRGULA);
 
         return new Atualizar(
             simboloAtualizar.linha,
@@ -478,9 +533,7 @@ export abstract class AvaliadorSintaticoBase
             'Esperado fechamento de parênteses após nome da tabela'
         );
 
-        // Ponto-e-vírgula opcional.
-        // TODO: trazer isso mais tarde.
-        // this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.PONTO_VIRGULA);
+        this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.PONTO_VIRGULA);
 
         return new Criar(
             simboloTabela.linha,
