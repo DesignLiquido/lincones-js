@@ -3,6 +3,7 @@
  * da mesma tabela e/ou de outras tabelass relacionadas.
  */
 export class Restricao {
+    nome: string;
     tipo: 'CHAVE_PRIMARIA' | 'CHAVE_ESTRANGEIRA' | 'ÚNICA';
     tabela: string;
     colunas: string[];
@@ -10,12 +11,14 @@ export class Restricao {
     colunasReferenciadas?: string[];
 
     constructor(
+        nome: string,
         tipo: 'CHAVE_PRIMARIA' | 'CHAVE_ESTRANGEIRA' | 'ÚNICA', 
         tabela: string, 
         colunas: string[], 
         tabelaReferenciada?: string, 
         colunasReferenciadas?: string[]
     ) {
+        this.nome = nome;
         this.tipo = tipo;
         this.tabela = tabela;
         this.colunas = colunas;

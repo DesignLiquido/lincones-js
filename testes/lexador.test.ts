@@ -23,7 +23,7 @@ describe('Lexador', () => {
                 expect(resultado.simbolos).toHaveLength(0);
             });
 
-            it('Sucesso com código repetindo instruçoes', () => {
+            it('Sucesso com código repetindo instruções', () => {
                 const codigo = [
                     '((((((((((((((((((((((((((',
                     ')))))))))))))))))))))))))',

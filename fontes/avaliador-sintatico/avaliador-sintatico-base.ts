@@ -222,13 +222,13 @@ export abstract class AvaliadorSintaticoBase
 
     private logicaAdicionarOuAlterarRestricao(
         simboloNomeDaTabela: SimboloInterface,
-        simboloNomeDaColuna: SimboloInterface
+        simboloNomeDaRestricao: SimboloInterface
     ): Restricao {
         // Tipo de restrição
         const simboloTipoRestricao = this.avancarEDevolverAnterior();
         switch (simboloTipoRestricao.tipo) {
             case tiposDeSimbolos.CHAVE:
-                return this.logicaRestricaoChave(simboloNomeDaTabela);
+                return this.logicaRestricaoChave(simboloNomeDaTabela, simboloNomeDaRestricao);
             case tiposDeSimbolos.UNICA:
                 break;
         }
@@ -236,7 +236,7 @@ export abstract class AvaliadorSintaticoBase
         return undefined;
     }
 
-    private logicaRestricaoChave(simboloNomeDaTabela: SimboloInterface) {
+    private logicaRestricaoChave(simboloNomeDaTabela: SimboloInterface, simboloNomeDaRestricao: SimboloInterface) {
         const simboloTipoChave = this.avancarEDevolverAnterior();
         switch (simboloTipoChave.tipo) {
             case tiposDeSimbolos.PRIMARIA:
@@ -251,7 +251,14 @@ export abstract class AvaliadorSintaticoBase
                 const nomeColunaReferenciada = this.consumir(tiposDeSimbolos.IDENTIFICADOR, 'Esperado nome de coluna referenciada para restrição do tipo chave estrangeira.');
                 this.consumir(tiposDeSimbolos.PARENTESE_DIREITO, 'Esperado fechamento de parêntese após nome de coluna referenciada para restrição do tipo chave estrangeira.');
                 this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.PONTO_VIRGULA);
-                return new Restricao("CHAVE_ESTRANGEIRA", simboloNomeDaTabela.lexema, [nomeColunaChave.lexema], nomeTabelaReferenciada.lexema, [nomeColunaReferenciada.lexema]);
+                return new Restricao(
+                    simboloNomeDaRestricao.lexema, 
+                    "CHAVE_ESTRANGEIRA", 
+                    simboloNomeDaTabela.lexema, 
+                    [nomeColunaChave.lexema], 
+                    nomeTabelaReferenciada.lexema, 
+                    [nomeColunaReferenciada.lexema]
+                );
         }
     }
 
@@ -266,10 +273,11 @@ export abstract class AvaliadorSintaticoBase
             'Esperado palavra reservada "ALTERAR".'
         );
 
-        this.consumir(
-            tiposDeSimbolos.TABELA,
-            'Esperado palavra reservada "TABELA".'
-        );
+        if (!this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.TABELA, tiposDeSimbolos.VISAO)) {
+            throw this.erro(this.simbolos[this.atual], 'Esperado palavra reservada "TABELA" ou "VISÃO".');
+        }
+
+        const simboloTipoEntidade = this.simbolos[this.atual - 1];
 
         const nomeDaTabela = this.consumir(
             tiposDeSimbolos.IDENTIFICADOR,
@@ -314,6 +322,7 @@ export abstract class AvaliadorSintaticoBase
         return new Alterar(
             simboloAlterar.linha,
             nomeDaTabela.lexema,
+            simboloTipoEntidade.lexema,
             operacoes
         );
     }

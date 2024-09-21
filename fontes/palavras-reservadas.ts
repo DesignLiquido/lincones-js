@@ -46,5 +46,7 @@ export default {
     unica: tiposDeSimbolos.UNICA,
     única: tiposDeSimbolos.UNICA,
     valores: tiposDeSimbolos.VALORES,
-    verdadeiro: tiposDeSimbolos.VERDADEIRO
+    verdadeiro: tiposDeSimbolos.VERDADEIRO,
+    visao: tiposDeSimbolos.VISAO,
+    visão: tiposDeSimbolos.VISAO
 };

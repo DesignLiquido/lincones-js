@@ -35,7 +35,7 @@ export class Tradutor {
         }
     }
 
-    protected traduzirTipo(tipo: string) {
+    protected traduzirTipoDeDados(tipo: string) {
         switch (tipo) {
             case 'INTEIRO':
                 return 'INTEGER';
@@ -48,10 +48,21 @@ export class Tradutor {
         }
     }
 
+    protected traduzirTipoDeRestricao(tipo: string) {
+        switch (tipo) {
+            case 'CHAVE_PRIMARIA':
+                return 'PRIMARY KEY';
+            case 'CHAVE_ESTRANGEIRA':
+                return 'FOREIGN KEY';
+            case 'ÚNICA':
+                return 'UNIQUE';
+        }
+    }
+
     protected traduzirColunaComTipo(coluna: Coluna) {
         let resultado = `${' '.repeat(this.tamanhoIndentacao)}${
             coluna.nomeColuna
-        } ${this.traduzirTipo(coluna.tipo)} `;
+        } ${this.traduzirTipoDeDados(coluna.tipo)} `;
 
         if (coluna.tamanho) {
             resultado += `(${coluna.tamanho.lexema}) `;
@@ -219,7 +230,7 @@ export class Tradutor {
 
     private logicaManipulacaoColunas(elemento: Coluna | Restricao) {
         if (elemento instanceof Coluna) {
-            let formatacaoColuna = `COLUMN ${elemento.nomeColuna} ${this.traduzirTipo(elemento.tipo)}`;
+            let formatacaoColuna = `COLUMN ${elemento.nomeColuna} ${this.traduzirTipoDeDados(elemento.tipo)} `;
             if (elemento.tipo === 'TEXTO') {
                 formatacaoColuna += `(${elemento.tamanho.lexema})`;
             }
@@ -227,11 +238,36 @@ export class Tradutor {
             return formatacaoColuna;
         }
 
-        return 'CONSTRAINT';    
+        if (elemento instanceof Restricao) {
+            let formatacaoRestricao = `CONSTRAINT ${elemento.nome} ${this.traduzirTipoDeRestricao(elemento.tipo)} (`;
+            for (const coluna of elemento.colunas) {
+                formatacaoRestricao += coluna + ', ';
+            }
+
+            formatacaoRestricao = formatacaoRestricao.slice(0, -2);
+            formatacaoRestricao += `) REFERENCES ${elemento.tabelaReferenciada} (`;
+            for (const colunaReferenciada of elemento.colunasReferenciadas) {
+                formatacaoRestricao += colunaReferenciada + ', ';
+            }
+
+            formatacaoRestricao = formatacaoRestricao.slice(0, -2);
+            formatacaoRestricao += `) `;
+            return formatacaoRestricao;
+        }
+    }
+
+    private traduzirTipoEntidade(tipoEntidade: string) {
+        switch (tipoEntidade.toUpperCase()) {
+            case 'TABELA':
+                return 'TABLE';
+            case 'VISÃO':
+            case 'VISAO':
+                return 'VIEW';
+        }
     }
 
     protected traduzirComandoAlterar(comandoAlterar: Alterar): string {
-        let resultado = `ALTER TABLE ${comandoAlterar.nomeEntidade} `;
+        let resultado = `ALTER ${this.traduzirTipoEntidade(comandoAlterar.tipoEntidade)} ${comandoAlterar.nomeEntidade} `;
 
         for (const operacao of comandoAlterar.operacoes) {
             switch (operacao.tipo) {

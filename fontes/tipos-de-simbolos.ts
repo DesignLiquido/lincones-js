@@ -51,5 +51,6 @@ export default {
     UNICA: 'UNICA',
     VALORES: 'VALORES',
     VERDADEIRO: 'VERDADEIRO',
-    VIRGULA: 'VIRGULA'
+    VIRGULA: 'VIRGULA',
+    VISAO: 'VISAO'
 };

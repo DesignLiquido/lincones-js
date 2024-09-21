@@ -9,10 +9,12 @@ export class Alterar extends Comando {
     constructor(
         linha: number, 
         nomeEntidade: string, 
+        tipoEntidade: string,
         operacoes: OperacaoAlteracaoTabela[]
     ) {
         super(linha);
         this.nomeEntidade = nomeEntidade;
+        this.tipoEntidade = tipoEntidade as 'TABELA' | 'VISÃO';
         this.operacoes = operacoes;
     }
 }

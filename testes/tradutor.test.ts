@@ -32,22 +32,45 @@ describe('Tradutor', () => {
                 expect(resultado).toContain('VARCHAR');
             });
 
-            it('Alterar', () => {
-                const codigo = [
-                    'ALTERAR TABELA clientes ADICIONAR COLUNA email TEXTO(120)'
-                ];
-                const retornoLexador = lexador.mapear(codigo);
-                const retornoAvaliadorSintatico =
-                    avaliadorSintatico.analisar(retornoLexador);
-                const resultado = tradutor.traduzir(retornoAvaliadorSintatico.comandos);
-                expect(resultado).toBeTruthy();
-                expect(resultado).toContain('ALTER');
-                expect(resultado).toContain('TABLE');
-                expect(resultado).toContain('clientes');
-                expect(resultado).toContain('ADD');
-                expect(resultado).toContain('COLUMN');
-                expect(resultado).toContain('email');
-                expect(resultado).toContain('VARCHAR(120)');
+            describe('Alterar tabela', () => {
+                it('Adição de coluna', () => {
+                    const codigo = [
+                        'ALTERAR TABELA clientes ADICIONAR COLUNA email TEXTO(120)'
+                    ];
+                    const retornoLexador = lexador.mapear(codigo);
+                    const retornoAvaliadorSintatico =
+                        avaliadorSintatico.analisar(retornoLexador);
+                    const resultado = tradutor.traduzir(retornoAvaliadorSintatico.comandos);
+                    expect(resultado).toBeTruthy();
+                    expect(resultado).toContain('ALTER');
+                    expect(resultado).toContain('TABLE');
+                    expect(resultado).toContain('clientes');
+                    expect(resultado).toContain('ADD');
+                    expect(resultado).toContain('COLUMN');
+                    expect(resultado).toContain('email');
+                    expect(resultado).toContain('VARCHAR(120)');
+                });
+
+                it('Adição de restrição', () => {
+                    const codigo = [
+                        'ALTERAR TABELA pedidos ',
+                        'ADICIONAR RESTRIÇÃO chave_estrang ',
+                        'CHAVE ESTRANGEIRA (cliente_id) ',
+                        'REFERENCIA clientes (id);'
+                    ];
+                    const retornoLexador = lexador.mapear(codigo);
+                    const retornoAvaliadorSintatico =
+                        avaliadorSintatico.analisar(retornoLexador);
+                    const resultado = tradutor.traduzir(retornoAvaliadorSintatico.comandos);
+                    expect(resultado).toBeTruthy();
+                    expect(resultado).toContain('ALTER');
+                    expect(resultado).toContain('TABLE');
+                    expect(resultado).toContain('pedidos');
+                    expect(resultado).toContain('ADD');
+                    expect(resultado).toContain('CONSTRAINT');
+                    expect(resultado).toContain('chave_estrang');
+                    expect(resultado).toContain('FOREIGN KEY');
+                });
             });
 
             it('Atualizar', () => {

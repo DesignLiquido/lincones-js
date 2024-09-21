@@ -4,7 +4,7 @@ Implementação base da especificação de [LinConEs](https://github.com/DesignL
 
 ## Motivação
 
-Idealmente, LinConEs é uma especificação única para qualquer banco de dados. No entanto, nem todo banco de dados relacional segue a especificação SQL ANSI, sendo necessárias algumas nuancas tecnológicas na hora de traduzir alguns comandos. 
+Idealmente, LinConEs é uma especificação única para qualquer banco de dados. No entanto, nem todo banco de dados relacional segue a especificação SQL ANSI, sendo necessárias algumas nuancas tecnológicas na hora de traduzir alguns comandos. Essas nuances tecnológicas são implementadas em pacotes específicos de cada tecnologia. Este pacote oferece tradução a SQL ANSI, independente da tecnologia do banco de dados.
 
 Esta implementação conta com três compomentes funcionais:
 
