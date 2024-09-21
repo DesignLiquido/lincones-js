@@ -120,7 +120,7 @@ export class Tradutor {
     protected traduzirComandoCriar(comandoCriar: Criar) {
         let resultado = 'CREATE TABLE ';
 
-        resultado += `${comandoCriar.tabela} (\n`;
+        resultado += `${comandoCriar.nomeEntidade} (\n`;
 
         for (const coluna of comandoCriar.colunas) {
             resultado += this.traduzirColunaComTipo(coluna);
