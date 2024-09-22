@@ -62,7 +62,7 @@ export class TradutorSqlAnsi {
     protected traduzirColunaComTipo(coluna: Coluna) {
         let resultado = `${' '.repeat(this.tamanhoIndentacao)}${
             coluna.nomeColuna
-        } ${this.traduzirTipoDeDados(coluna.tipo)} `;
+        } ${this.traduzirTipoDeDados(coluna.tipo)}`;
 
         if (coluna.tamanho) {
             resultado += `(${coluna.tamanho.lexema}) `;
@@ -230,11 +230,12 @@ export class TradutorSqlAnsi {
 
     private logicaManipulacaoColunas(elemento: Coluna | Restricao) {
         if (elemento instanceof Coluna) {
-            let formatacaoColuna = `COLUMN ${elemento.nomeColuna} ${this.traduzirTipoDeDados(elemento.tipo)} `;
+            let formatacaoColuna = `COLUMN ${elemento.nomeColuna} ${this.traduzirTipoDeDados(elemento.tipo)}`;
             if (elemento.tipo === 'TEXTO') {
                 formatacaoColuna += `(${elemento.tamanho.lexema})`;
             }
 
+            formatacaoColuna += ` `;
             return formatacaoColuna;
         }
 
