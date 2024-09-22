@@ -574,7 +574,7 @@ export abstract class AvaliadorSintaticoBase
         );
     }
 
-    private comandoInserir(): Inserir {
+    protected comandoInserir(): Inserir {
         // Essa linha nunca deve retornar erro.
         const simboloInserir = this.consumir(
             tiposDeSimbolos.INSERIR,
