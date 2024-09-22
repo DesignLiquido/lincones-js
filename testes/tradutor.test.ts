@@ -1,18 +1,18 @@
 import { AvaliadorSintatico } from "../fontes/avaliador-sintatico";
 import { Lexador } from "../fontes/lexador";
-import { Tradutor } from "../fontes/tradutor";
+import { TradutorSqlAnsi } from "../fontes/tradutor";
 
-describe('Tradutor', () => {
+describe('Tradutor (SQL ANSI)', () => {
     let lexador: Lexador;
     let avaliadorSintatico: AvaliadorSintatico;
-    let tradutor: Tradutor;
+    let tradutor: TradutorSqlAnsi;
 
     describe('traduzir()', () => {
         describe('Cenário de sucesso', () => {
             beforeEach(() => {
                 lexador = new Lexador();
                 avaliadorSintatico = new AvaliadorSintatico();
-                tradutor = new Tradutor();
+                tradutor = new TradutorSqlAnsi();
             });
 
             it('Criar', () => {

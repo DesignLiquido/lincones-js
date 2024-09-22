@@ -17,7 +17,7 @@ import tiposDeSimbolos from '../tipos-de-simbolos';
  * utilizar para outros tradutores futuros, com pequenas nuances em
  * alguns comandos quando for o caso.
  */
-export class Tradutor {
+export class TradutorSqlAnsi {
     tamanhoIndentacao: number;
 
     constructor(tamanhoIndentacao = 4) {
