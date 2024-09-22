@@ -27,7 +27,7 @@ export class Coluna {
         this.tipo = tipoColunaResolvido as 'INTEIRO' | 'LOGICO' | 'NUMERO' | 'TEXTO';
         this.tamanho = tamanho;
         
-        this.nulo = nulo || true;
+        this.nulo = nulo === true ? true : false;
         this.chavePrimaria = chavePrimaria || false;
         this.chaveEstrangeira = chaveEstrangeira || false;
         this.autoIncremento = autoIncremento || false;
