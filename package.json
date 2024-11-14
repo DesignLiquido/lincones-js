@@ -14,8 +14,11 @@
         }
     ],
     "license": "MIT",
+    "publishConfig": {
+        "registry": "https://registry.npmjs.org/"
+    },
     "scripts": {
-        "empacotar": "yarn rimraf ./dist && tsc && yarn copyfiles -V ./README.md ./dist",
+        "empacotar": "yarn rimraf ./dist && tsc && yarn copyfiles -V ./README.md ./dist && yarn copyfiles -V ./LICENSE ./dist",
         "formatacao-prettier": "prettier --config .prettierrc  *.ts --write",
         "publicar-npm": "npm publish --access public",
         "lint": "eslint . --ext .ts",
