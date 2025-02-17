@@ -1,6 +1,7 @@
 import { Simbolo } from "../lexador/simbolo";
+import { Construto } from "./construto";
 
-export class Coluna {
+export class Coluna extends Construto {
     nomeColuna: string;
     tipo: 'INTEIRO' | 'LOGICO' | 'NUMERO' | 'TEXTO';
     tamanho: Simbolo | undefined;
@@ -18,6 +19,7 @@ export class Coluna {
         chaveEstrangeira?: boolean,
         autoIncremento?: boolean
     ) {
+        super();
         this.nomeColuna = nomeColuna;
         const tipoColunaResolvido = tipo.toUpperCase();
         if (!['INTEIRO', 'LOGICO', 'NUMERO', 'TEXTO'].includes(tipoColunaResolvido)) {

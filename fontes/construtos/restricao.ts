@@ -1,8 +1,10 @@
+import { Construto } from "./construto";
+
 /**
  * Uma restrição cria uma regra em uma tabela ou visão, que trabalha com uma ou mais colunas
  * da mesma tabela e/ou de outras tabelass relacionadas.
  */
-export class Restricao {
+export class Restricao extends Construto {
     nome: string;
     tipo: 'CHAVE_PRIMARIA' | 'CHAVE_ESTRANGEIRA' | 'ÚNICA';
     tabela: string;
@@ -18,6 +20,7 @@ export class Restricao {
         tabelaReferenciada?: string, 
         colunasReferenciadas?: string[]
     ) {
+        super();
         this.nome = nome;
         this.tipo = tipo;
         this.tabela = tabela;
