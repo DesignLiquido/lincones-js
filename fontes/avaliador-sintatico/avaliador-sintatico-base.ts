@@ -15,7 +15,7 @@ import {
 import { ErroAvaliadorSintatico } from './erro-avaliador-sintatico';
 
 import { Coluna } from '../construtos/coluna';
-import { Condicao } from '../construtos';
+import { ColunaEValor, Condicao, Literal, ReferenciaColuna } from '../construtos';
 
 import tiposDeSimbolos from '../tipos-de-simbolos';
 import { OperacaoAlteracaoTabela } from '../construtos/operacao-alteracao-tabela';
@@ -262,6 +262,24 @@ export abstract class AvaliadorSintaticoBase
         }
     }
 
+    protected inferirTipoLiteral(simboloLiteral: SimboloInterface): 'INTEIRO' | 'LOGICO' | 'NUMERO' | 'TEXTO' {
+        let tipoInferido: 'INTEIRO' | 'LOGICO' | 'NUMERO' | 'TEXTO' = 'TEXTO';
+        switch (simboloLiteral.lexema) {
+            case 'VERDADEIRO':
+            case 'FALSO':
+                tipoInferido = 'LOGICO';
+                break;
+            default:
+                const tentativaNumero = Number(simboloLiteral.lexema);
+                if (!isNaN(tentativaNumero)) {
+                    tipoInferido = 'INTEIRO';
+                }
+                break;
+        }
+
+        return tipoInferido;
+    }
+
     //https://pgdocptbr.sourceforge.io/pg80/ddl-alter.html
     //ALTER TABLE produtos ADD COLUMN descricao text => alterar tabela produtos adicionar coluna descricao texto(50)
     //ALTER TABLE produtos DROP COLUMN descricao;
@@ -345,7 +363,7 @@ export abstract class AvaliadorSintaticoBase
         );
 
         // Relação de colunas para atualização
-        const colunasAtualizacao = [];
+        const colunasAtualizacao: ColunaEValor[] = [];
         do {
             const esquerda = this.consumir(
                 tiposDeSimbolos.IDENTIFICADOR,
@@ -373,10 +391,15 @@ export abstract class AvaliadorSintaticoBase
 
             const direita = this.simbolos[this.atual];
             this.avancar();
-            colunasAtualizacao.push({
-                esquerda,
-                direita
-            });
+
+            const tipoInferidoDireita = this.inferirTipoLiteral(direita);
+
+            colunasAtualizacao.push(
+                new ColunaEValor(
+                    new ReferenciaColuna(esquerda.lexema),
+                    new Literal(direita.literal || direita.lexema, tipoInferidoDireita)
+                )
+            );
         } while (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.VIRGULA));
 
         // Condições
@@ -697,11 +720,13 @@ export abstract class AvaliadorSintaticoBase
                 const direita = this.simbolos[this.atual];
                 this.avancar();
 
+                const tipoDireita = this.inferirTipoLiteral(direita);
+
                 condicoes.push(
                     new Condicao(
-                        esquerda,
-                        operador,
-                        direita.literal || direita.lexema
+                        new ReferenciaColuna(esquerda.lexema),
+                        operador as "IGUAL" | "MAIOR" | "MAIOR_IGUAL" | "MENOR" | "MENOR_IGUAL",
+                        new Literal(direita.literal || direita.lexema, tipoDireita)
                     )
                 );
             } while (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.E));

@@ -1,15 +1,15 @@
-import { Condicao } from "../construtos";
+import { ColunaEValor, Condicao, Construto } from "../construtos";
 import { Comando } from "./comando";
 
 export class Atualizar extends Comando {
     tabela: string;
-    colunasEValores: { esquerda: any, direita: any }[];
+    colunasEValores: ColunaEValor[];
     condicoes: Condicao[];
 
     constructor(
         linha: number, 
         tabela: string, 
-        colunasEValores: { esquerda: any, direita: any }[], 
+        colunasEValores: ColunaEValor[], 
         condicoes: Condicao[]
     ) {
         super(linha);

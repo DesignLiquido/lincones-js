@@ -19,4 +19,8 @@ export class OperacaoAlteracaoTabela extends Construto {
         this.tipo = tipoOperacaoResolvido as 'ADICIONAR' | 'ALTERAR' | 'EXCLUIR' | 'RENOMEAR';
         this.elemento = elemento;
     }
+
+    toString(): string {
+        return `<OperaçãoAlteraçãoTabela tipo=${this.tipo} elemento=${this.elemento.toString()}>`;
+    }
 }

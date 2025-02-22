@@ -90,9 +90,9 @@ describe('Tradutor (SQL ANSI)', () => {
                 expect(resultado).toContain('IDADE');
                 expect(resultado).toContain('18');
                 expect(resultado).toContain('ATIVO');
-                expect(resultado).toContain('true');
+                expect(resultado).toContain('TRUE');
                 expect(resultado).toContain('CASADO');
-                expect(resultado).toContain('false');
+                expect(resultado).toContain('FALSE');
                 expect(resultado).toContain('WHERE');
                 expect(resultado).toContain('ID');
                 expect(resultado).toContain('=');

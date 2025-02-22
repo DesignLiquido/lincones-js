@@ -34,4 +34,28 @@ export class Coluna extends Construto {
         this.chaveEstrangeira = chaveEstrangeira || false;
         this.autoIncremento = autoIncremento || false;
     }
+
+    toString(): string {
+        let retorno = `<Coluna nome=${this.nomeColuna} tipo=${this.tipo}`;
+        if (this.tamanho) {
+            retorno += ` tamanho=${this.tamanho.lexema}`;
+        }
+
+        retorno += ` nulo=${this.nulo ? 'Sim' : 'Não'}`;
+
+        if (this.chavePrimaria) {
+            retorno += ` chave primária;`;
+        }
+
+        if (this.chaveEstrangeira) {
+            retorno += ` chave estrangeira;`;
+        }
+
+        if (this.autoIncremento) {
+            retorno += ` auto incremento;`;
+        }
+
+        retorno += `>`;
+        return retorno;
+    }
 }

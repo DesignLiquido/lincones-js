@@ -7,4 +7,8 @@ export class ReferenciaColuna extends Construto {
         super();
         this.nomeColuna = nomeColuna;
     }
+
+    toString(): string {
+        return `<ReferênciaColuna nome da coluna=${this.nomeColuna}>`;
+    }
 }
