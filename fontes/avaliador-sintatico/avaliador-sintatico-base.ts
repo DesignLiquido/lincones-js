@@ -13,17 +13,12 @@ import {
     RetornoLexador
 } from '../interfaces/retornos';
 import { ErroAvaliadorSintatico } from './erro-avaliador-sintatico';
-
-import { Coluna } from '../construtos/coluna';
-import { ColunaEValor, Condicao, Literal, ReferenciaColuna } from '../construtos';
+import { Coluna, ColunaEValor, Condicao, Construto, Literal, OperacaoAlteracaoTabela, ReferenciaColuna, Restricao } from '../construtos';
 
 import tiposDeSimbolos from '../tipos-de-simbolos';
-import { OperacaoAlteracaoTabela } from '../construtos/operacao-alteracao-tabela';
-import { Restricao } from '../construtos/restricao';
 
 export abstract class AvaliadorSintaticoBase
-    implements AvaliadorSintaticoInterface
-{
+    implements AvaliadorSintaticoInterface {
     simbolos: SimboloInterface[];
     erros: ErroAvaliadorSintatico[];
     atual: number;
@@ -134,8 +129,8 @@ export abstract class AvaliadorSintaticoBase
         let tamanhoElemento = null;
 
         if (![
-            tiposDeSimbolos.INTEIRO, 
-            tiposDeSimbolos.LOGICO, 
+            tiposDeSimbolos.INTEIRO,
+            tiposDeSimbolos.LOGICO,
             tiposDeSimbolos.TEXTO
         ].includes(simboloTipoElemento.tipo)) {
             throw this.erro(simboloTipoElemento, `Tipo de coluna inválido para operação de adição ou alteração de coluna. Tipos válidos: inteiro, lógico ou texto. Obtido: ${simboloTipoElemento.tipo}.`);
@@ -210,7 +205,7 @@ export abstract class AvaliadorSintaticoBase
         }
 
         return new Coluna(
-            simboloNomeDaColuna.lexema, 
+            simboloNomeDaColuna.lexema,
             simboloTipoElemento.lexema,
             tamanhoElemento ? tamanhoElemento : undefined,
             nulo,
@@ -252,32 +247,29 @@ export abstract class AvaliadorSintaticoBase
                 this.consumir(tiposDeSimbolos.PARENTESE_DIREITO, 'Esperado fechamento de parêntese após nome de coluna referenciada para restrição do tipo chave estrangeira.');
                 this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.PONTO_VIRGULA);
                 return new Restricao(
-                    simboloNomeDaRestricao.lexema, 
-                    "CHAVE_ESTRANGEIRA", 
-                    simboloNomeDaTabela.lexema, 
-                    [nomeColunaChave.lexema], 
-                    nomeTabelaReferenciada.lexema, 
+                    simboloNomeDaRestricao.lexema,
+                    "CHAVE_ESTRANGEIRA",
+                    simboloNomeDaTabela.lexema,
+                    [nomeColunaChave.lexema],
+                    nomeTabelaReferenciada.lexema,
                     [nomeColunaReferenciada.lexema]
                 );
         }
     }
 
     protected inferirTipoLiteral(simboloLiteral: SimboloInterface): 'INTEIRO' | 'LOGICO' | 'NUMERO' | 'TEXTO' {
-        let tipoInferido: 'INTEIRO' | 'LOGICO' | 'NUMERO' | 'TEXTO' = 'TEXTO';
-        switch (simboloLiteral.lexema) {
-            case 'VERDADEIRO':
-            case 'FALSO':
-                tipoInferido = 'LOGICO';
-                break;
-            default:
-                const tentativaNumero = Number(simboloLiteral.lexema);
-                if (!isNaN(tentativaNumero)) {
-                    tipoInferido = 'INTEIRO';
+        const lexemaOuLiteral = simboloLiteral.lexema || simboloLiteral.literal;
+        switch (lexemaOuLiteral.constructor.name) {
+            case 'String':
+                if (['VERDADEIRO', 'FALSO'].includes(lexemaOuLiteral.toUpperCase())) {
+                    return 'LOGICO';
                 }
-                break;
+                return 'TEXTO';
+            case 'Number':
+                return 'NUMERO';
+            default:
+                throw new ErroAvaliadorSintatico(simboloLiteral, `Tipo ${simboloLiteral.lexema} não pode ser inferido.`);
         }
-
-        return tipoInferido;
     }
 
     //https://pgdocptbr.sourceforge.io/pg80/ddl-alter.html
@@ -642,7 +634,7 @@ export abstract class AvaliadorSintaticoBase
         );
 
         // Valores
-        const valores = [];
+        const valores: Construto[] = [];
         do {
             if (
                 ![
@@ -659,7 +651,8 @@ export abstract class AvaliadorSintaticoBase
                 );
             }
 
-            valores.push(this.simbolos[this.atual]);
+            const tipoInferido = this.inferirTipoLiteral(this.simbolos[this.atual]);
+            valores.push(new Literal(this.simbolos[this.atual].literal || this.simbolos[this.atual].lexema, tipoInferido));
             this.avancar();
         } while (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.VIRGULA));
 
@@ -701,7 +694,7 @@ export abstract class AvaliadorSintaticoBase
                     );
                 }
 
-                const operador = this.simbolos[this.atual].tipo;
+                const operador = this.simbolos[this.atual].tipo  as "IGUAL" | "MAIOR" | "MAIOR_IGUAL" | "MENOR" | "MENOR_IGUAL";
                 this.avancar();
 
                 if (
@@ -725,7 +718,7 @@ export abstract class AvaliadorSintaticoBase
                 condicoes.push(
                     new Condicao(
                         new ReferenciaColuna(esquerda.lexema),
-                        operador as "IGUAL" | "MAIOR" | "MAIOR_IGUAL" | "MENOR" | "MENOR_IGUAL",
+                        operador,
                         new Literal(direita.literal || direita.lexema, tipoDireita)
                     )
                 );

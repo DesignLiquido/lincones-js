@@ -101,7 +101,7 @@ describe('Tradutor (SQL ANSI)', () => {
 
             it('Inserir', () => {
                 const codigo = [
-                    'INSERIR EM clientes (NOME) VALORES ("Pernalonga")'
+                    'INSERIR EM clientes (NOME, IDADE, ATIVO, EMAIL) VALORES ("Pernalonga", 18, verdadeiro, "pernalonga@warnerbros.com")'
                 ];
                 const retornoLexador = lexador.mapear(codigo);
                 const retornoAvaliadorSintatico =
@@ -111,6 +111,9 @@ describe('Tradutor (SQL ANSI)', () => {
                 expect(resultado).toContain('INSERT');
                 expect(resultado).toContain('INTO');
                 expect(resultado).toContain('VALUES');
+                expect(resultado).toContain('Pernalonga');
+                expect(resultado).toContain('18');
+                expect(resultado).toContain('TRUE');
             });
 
             it('Excluir', () => {

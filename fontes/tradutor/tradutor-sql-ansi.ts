@@ -70,7 +70,7 @@ export class TradutorSqlAnsi {
                 const construtoLiteral = construto as Literal;
                 switch (construtoLiteral.tipoPresumido) {
                     case tiposDeSimbolos.LOGICO:
-                        return construtoLiteral.valor === 'VERDADEIRO' ? 'TRUE' : 'FALSE';
+                        return construtoLiteral.valor.toUpperCase() === 'VERDADEIRO' ? 'TRUE' : 'FALSE';
                     case tiposDeSimbolos.TEXTO:
                         return `'${construtoLiteral.valor}'`;
                     case tiposDeSimbolos.INTEIRO:
