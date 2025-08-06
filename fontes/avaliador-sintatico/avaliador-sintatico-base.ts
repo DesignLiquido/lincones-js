@@ -15,7 +15,7 @@ import {
 import { ErroAvaliadorSintatico } from './erro-avaliador-sintatico';
 import { Coluna, ColunaEValor, Condicao, Construto, Literal, OperacaoAlteracaoTabela, ReferenciaColuna, Restricao } from '../construtos';
 
-import tiposDeSimbolos from '../tipos-de-simbolos';
+import tiposDeSimbolos from '../tipos-de-simbolos/lincones';
 
 export abstract class AvaliadorSintaticoBase
     implements AvaliadorSintaticoInterface {

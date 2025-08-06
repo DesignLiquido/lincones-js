@@ -12,10 +12,10 @@ import { Literal } from '../construtos/literal';
 import { ReferenciaColuna } from '../construtos/referencia-coluna';
 import { Restricao } from '../construtos/restricao';
 
-import tiposDeSimbolos from '../tipos-de-simbolos';
+import tiposDeSimbolos from '../tipos-de-simbolos/lincones';
 
 /**
- * Este tradutor traduz sentenças em SQL ANSI, e a ideia é poder
+ * Este tradutor traduz comandos de alto nível em SQL ANSI, e a ideia é poder
  * utilizar para outros tradutores futuros, com pequenas nuances em
  * alguns comandos quando for o caso.
  */
@@ -265,7 +265,9 @@ export class TradutorSqlAnsi {
                     )}`;
                     break;
                 case 'ALTERAR':
-                    resultado += 'INTEGER';
+                    resultado += `ALTER ${this.logicaManipulacaoColunas(
+                        operacao.elemento
+                    )}`;
                     break;
                 case 'EXCLUIR':
                     resultado += 'BIT';

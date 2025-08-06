@@ -25,9 +25,7 @@ describe('Tradutor (SQL ANSI)', () => {
                 const resultado = tradutor.traduzir(retornoAvaliadorSintatico.comandos);
 
                 expect(resultado).toBeTruthy();
-                expect(resultado).toContain('CREATE');
-                expect(resultado).toContain('TABLE');
-                expect(resultado).toContain('clientes');
+                expect(resultado).toContain('CREATE TABLE clientes');
                 expect(resultado).toContain('email');
                 expect(resultado).toContain('VARCHAR');
             });
@@ -42,11 +40,8 @@ describe('Tradutor (SQL ANSI)', () => {
                         avaliadorSintatico.analisar(retornoLexador);
                     const resultado = tradutor.traduzir(retornoAvaliadorSintatico.comandos);
                     expect(resultado).toBeTruthy();
-                    expect(resultado).toContain('ALTER');
-                    expect(resultado).toContain('TABLE');
-                    expect(resultado).toContain('clientes');
-                    expect(resultado).toContain('ADD');
-                    expect(resultado).toContain('COLUMN');
+                    expect(resultado).toContain('ALTER TABLE clientes');
+                    expect(resultado).toContain('ADD COLUMN');
                     expect(resultado).toContain('email');
                     expect(resultado).toContain('VARCHAR(120)');
                 });
@@ -63,13 +58,24 @@ describe('Tradutor (SQL ANSI)', () => {
                         avaliadorSintatico.analisar(retornoLexador);
                     const resultado = tradutor.traduzir(retornoAvaliadorSintatico.comandos);
                     expect(resultado).toBeTruthy();
-                    expect(resultado).toContain('ALTER');
-                    expect(resultado).toContain('TABLE');
-                    expect(resultado).toContain('pedidos');
-                    expect(resultado).toContain('ADD');
-                    expect(resultado).toContain('CONSTRAINT');
-                    expect(resultado).toContain('chave_estrang');
+                    expect(resultado).toContain('ALTER TABLE pedidos');
+                    expect(resultado).toContain('ADD CONSTRAINT chave_estrang');
                     expect(resultado).toContain('FOREIGN KEY');
+                });
+
+                it('Alteração de coluna', () => {
+                    const codigo = [
+                        'ALTERAR TABELA clientes ALTERAR COLUNA email TEXTO(120)'
+                    ];
+                    const retornoLexador = lexador.mapear(codigo);
+                    const retornoAvaliadorSintatico =
+                        avaliadorSintatico.analisar(retornoLexador);
+                    const resultado = tradutor.traduzir(retornoAvaliadorSintatico.comandos);
+                    expect(resultado).toBeTruthy();
+                    expect(resultado).toContain('ALTER TABLE clientes');
+                    expect(resultado).toContain('ALTER COLUMN');
+                    expect(resultado).toContain('email');
+                    expect(resultado).toContain('VARCHAR(120)');
                 });
             });
 
@@ -82,8 +88,7 @@ describe('Tradutor (SQL ANSI)', () => {
                     avaliadorSintatico.analisar(retornoLexador);
                 const resultado = tradutor.traduzir(retornoAvaliadorSintatico.comandos);
                 expect(resultado).toBeTruthy();
-                expect(resultado).toContain('UPDATE');
-                expect(resultado).toContain('clientes');
+                expect(resultado).toContain('UPDATE clientes');
                 expect(resultado).toContain('SET');
                 expect(resultado).toContain('NOME');
                 expect(resultado).toContain('Pernalonga');
@@ -108,8 +113,7 @@ describe('Tradutor (SQL ANSI)', () => {
                     avaliadorSintatico.analisar(retornoLexador);
                 const resultado = tradutor.traduzir(retornoAvaliadorSintatico.comandos);
                 expect(resultado).toBeTruthy();
-                expect(resultado).toContain('INSERT');
-                expect(resultado).toContain('INTO');
+                expect(resultado).toContain('INSERT INTO');
                 expect(resultado).toContain('VALUES');
                 expect(resultado).toContain('Pernalonga');
                 expect(resultado).toContain('18');
@@ -125,8 +129,7 @@ describe('Tradutor (SQL ANSI)', () => {
                     avaliadorSintatico.analisar(retornoLexador);
                 const resultado = tradutor.traduzir(retornoAvaliadorSintatico.comandos);
                 expect(resultado).toBeTruthy();
-                expect(resultado).toContain('DELETE');
-                expect(resultado).toContain('FROM');
+                expect(resultado).toContain('DELETE FROM');
                 expect(resultado).toContain('clientes');
                 expect(resultado).toContain('WHERE');
                 expect(resultado).toContain('ID = 2');
