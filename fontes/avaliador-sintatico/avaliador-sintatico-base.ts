@@ -4,6 +4,7 @@ import {
     Comando,
     Criar,
     Excluir,
+    ExcluirEntidade,
     Inserir,
     Selecionar
 } from '../comandos';
@@ -582,11 +583,54 @@ export abstract class AvaliadorSintaticoBase
         );
     }
 
-    protected comandoExcluir(): Excluir {
+    protected comandoExcluirTabela(): ExcluirEntidade {
+        const nomeDaTabela = this.consumir(
+            tiposDeSimbolos.IDENTIFICADOR,
+            'Esperado identificador de nome de tabela após palavra reservada "TABELA".'
+        );
+
+        this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.PONTO_VIRGULA);
+
+        return new ExcluirEntidade(
+            nomeDaTabela.linha,
+            nomeDaTabela.lexema,
+            'TABELA'
+        );
+    }
+
+    protected comandoExcluirVisao(): ExcluirEntidade {
+        const nomeDaVisao = this.consumir(
+            tiposDeSimbolos.IDENTIFICADOR,
+            'Esperado identificador de nome de visão após palavra reservada "VISÃO".'
+        );
+
+        this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.PONTO_VIRGULA);
+
+        return new ExcluirEntidade(
+            nomeDaVisao.linha,
+            nomeDaVisao.lexema,
+            'VISÃO'
+        );
+    }
+
+    protected comandoExcluir(): Excluir | ExcluirEntidade {
         // Essa linha nunca deve retornar erro.
         const simboloExcluir = this.consumir(
             tiposDeSimbolos.EXCLUIR,
             'Esperado palavra reservada "EXCLUIR".'
+        );
+
+        if (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.TABELA)) {
+            return this.comandoExcluirTabela();
+        }
+
+        if (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.VISAO)) {
+            return this.comandoExcluirVisao();
+        }
+
+        this.consumir(
+            tiposDeSimbolos.DE,
+            'Esperado palavra reservada "DE" após palavra reservada "EXCLUIR".'
         );
 
         const nomeDaTabela = this.consumir(
