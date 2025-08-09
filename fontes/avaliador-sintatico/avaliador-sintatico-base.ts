@@ -628,10 +628,9 @@ export abstract class AvaliadorSintaticoBase
             return this.comandoExcluirVisao();
         }
 
-        this.consumir(
-            tiposDeSimbolos.DE,
-            'Esperado palavra reservada "DE" após palavra reservada "EXCLUIR".'
-        );
+        if (!this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.DE, tiposDeSimbolos.EM)) {
+            throw this.erro(this.simbolos[this.atual], 'Esperado palavra reservada "DE" ou "EM" após palavra reservada "EXCLUIR".');
+        }
 
         const nomeDaTabela = this.consumir(
             tiposDeSimbolos.IDENTIFICADOR,

@@ -122,7 +122,7 @@ describe('Tradutor (SQL ANSI)', () => {
 
             it('Excluir', () => {
                 const codigo = [
-                    'EXCLUIR clientes ONDE ID = 2'
+                    'EXCLUIR EM clientes ONDE ID = 2'
                 ];
                 const retornoLexador = lexador.mapear(codigo);
                 const retornoAvaliadorSintatico =
