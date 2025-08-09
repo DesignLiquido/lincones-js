@@ -77,13 +77,13 @@ describe('Lexador SQL ANSI', () => {
                     expect(resultado.simbolos).toHaveLength(4);
                 });
                 
-                it('Sucesso - Criar Tabela Clientes', () => {
+                it('Criar Tabela Clientes', () => {
                     const codigo = [
-                        'CRIAR TABELA clientes(id INTEIRO NAO NULO CHAVE PRIMARIA AUTOINCREMENTO, nome TEXTO(100) NAO NULO, idade INTEIRO NAO NULO, email TEXTO(255) NAO NULO, ativo LOGICO NAO NULO);'
+                        'CREATE TABLE clientes(id INTEGER NOT NULL PRIMARY KEY, nome VARCHAR(100) NOT NULL, idade INTEGER NOT NULL, email VARCHAR(255) NOT NULL, ativo BOOLEAN NOT NULL);'
                     ];
                     const resultado = lexador.mapear(codigo);
                     expect(resultado).toBeTruthy();
-                    expect(resultado.simbolos).toHaveLength(39);
+                    expect(resultado.simbolos).toHaveLength(38);
                 });
             });
         });

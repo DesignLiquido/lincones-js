@@ -5,10 +5,12 @@ export class Criar extends Comando {
     tipoEntidade: 'TABELA' | 'VISÃO';
     nomeEntidade: string;
     colunas: Coluna[];
+    seNaoExistir: boolean;
     
-    constructor(linha: number, nomeEntidade: string, colunas: Coluna[]) {
+    constructor(linha: number, nomeEntidade: string, colunas: Coluna[], seNaoExistir = false) {
         super(linha);
         this.nomeEntidade = nomeEntidade;
         this.colunas = colunas;
+        this.seNaoExistir = seNaoExistir;
     }
 }

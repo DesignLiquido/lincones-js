@@ -536,6 +536,21 @@ export abstract class AvaliadorSintaticoBase
             'Esperado palavra reservada "TABELA".'
         );
 
+        let seNaoExistir = false;
+        if (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.SE)) {
+            this.consumir(
+                tiposDeSimbolos.NAO,
+                'Esperado palavra reservada "NÃO" após palavra reservada "SE".'
+            );
+
+            this.consumir(
+                tiposDeSimbolos.EXISTIR,
+                'Esperado palavra reservada "EXISTIR" após palavra reservada "NÃO".'
+            );
+
+            seNaoExistir = true;
+        }
+
         const nomeDaTabela = this.consumir(
             tiposDeSimbolos.IDENTIFICADOR,
             'Esperado identificador de nome de tabela após palavra reservada "TABELA".'
@@ -562,7 +577,8 @@ export abstract class AvaliadorSintaticoBase
         return new Criar(
             simboloTabela.linha,
             nomeDaTabela.lexema,
-            colunas
+            colunas,
+            seNaoExistir
         );
     }
 

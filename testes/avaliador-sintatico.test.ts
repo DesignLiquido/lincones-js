@@ -75,6 +75,24 @@ describe('Avaliador Sintático', () => {
                     expect(resultadoAvaliadorSintatico.erros).toHaveLength(0);
                 });
 
+                it('Criar Tabela se não existir', () => {
+                    const codigo = [
+                        'CRIAR TABELA SE NÃO EXISTIR clientes ( ',
+                        '  ID INTEIRO NAO NULO CHAVE PRIMARIA, ',
+                        '  NOME TEXTO(100) NAO NULO, ',
+                        '  IDADE INTEIRO NAO NULO, ',
+                        '  EMAIL TEXTO(255) NAO NULO, ',
+                        '  ATIVO LOGICO NAO NULO ',
+                        ');'
+                    ];
+                    const resultadoLexador = lexador.mapear(codigo);
+                    const resultadoAvaliadorSintatico =
+                        avaliadorSintatico.analisar(resultadoLexador);
+                    expect(resultadoAvaliadorSintatico).toBeTruthy();
+                    expect(resultadoAvaliadorSintatico.comandos).toHaveLength(1);
+                    expect(resultadoAvaliadorSintatico.erros).toHaveLength(0);
+                });
+
                 describe('Casos de alteração de tabelas', () => {
                     it('Adição de restrição', () => {
                         const codigo = [

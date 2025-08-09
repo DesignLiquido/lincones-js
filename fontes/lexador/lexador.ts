@@ -10,6 +10,10 @@ export class Lexador extends LexadorBase {
         this.simbolos = [];
         this.erros = [];
 
+        for (let iterador = 0; iterador < this.codigo.length; iterador++) {
+            this.codigo[iterador] += '\0';
+        }
+
         while (!this.eFinalDoCodigo()) {
             this.inicioSimbolo = this.atual;
             this.analisarToken();

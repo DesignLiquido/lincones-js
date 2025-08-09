@@ -17,6 +17,7 @@ export default {
     em: tiposDeSimbolos.EM,
     estrangeira: tiposDeSimbolos.ESTRANGEIRA,
     excluir: tiposDeSimbolos.EXCLUIR,
+    existir: tiposDeSimbolos.EXISTIR,
     falso: tiposDeSimbolos.FALSO,
     identidade: tiposDeSimbolos.IDENTIDADE,
     incremento: tiposDeSimbolos.INCREMENTO,
