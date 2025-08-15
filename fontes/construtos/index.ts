@@ -4,5 +4,7 @@ export * from './condicao';
 export * from './construto';
 export * from './literal';
 export * from './operacao-alteracao-tabela';
+export * from './parametro-anonimo';
+export * from './parametro-nomeado';
 export * from './referencia-coluna';
 export * from './restricao';

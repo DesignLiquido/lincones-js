@@ -232,6 +232,14 @@ export abstract class LexadorBase {
                     this.adicionarSimbolo(tiposDeSimbolos.MAIOR);
                 }
                 break;
+            case ':':
+                this.adicionarSimbolo(tiposDeSimbolos.DOIS_PONTOS, ':');
+                this.avancar();
+                break;
+            case '?':
+                this.adicionarSimbolo(tiposDeSimbolos.INTERROGACAO, '?');
+                this.avancar();
+                break;
             default:
                 if (this.eDigito(caractere)) this.analisarNumero();
                 else if (this.eAlfabeto(caractere))

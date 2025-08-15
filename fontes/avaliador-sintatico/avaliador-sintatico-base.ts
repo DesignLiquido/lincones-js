@@ -14,7 +14,7 @@ import {
     RetornoLexador
 } from '../interfaces/retornos';
 import { ErroAvaliadorSintatico } from './erro-avaliador-sintatico';
-import { Coluna, ColunaEValor, Condicao, Construto, Literal, OperacaoAlteracaoTabela, ReferenciaColuna, Restricao } from '../construtos';
+import { Coluna, ColunaEValor, Condicao, Construto, Literal, OperacaoAlteracaoTabela, ParametroAnonimo, ParametroNomeado, ReferenciaColuna, Restricao } from '../construtos';
 
 import tiposDeSimbolos from '../tipos-de-simbolos/lincones';
 
@@ -730,6 +730,37 @@ export abstract class AvaliadorSintaticoBase
         return new Inserir(simboloInserir.linha, nomeDaTabela.lexema, colunas, valores);
     }
 
+    protected logicaComumOperando(): Construto {
+        const simboloOperando = this.avancarEDevolverAnterior();
+        switch (simboloOperando.tipo) {
+            case tiposDeSimbolos.IDENTIFICADOR:
+                return new ReferenciaColuna(simboloOperando.lexema);
+            case tiposDeSimbolos.NUMERO:
+            case tiposDeSimbolos.TEXTO:
+            case tiposDeSimbolos.VERDADEIRO:
+            case tiposDeSimbolos.FALSO:
+                const tipoInferido = this.inferirTipoLiteral(simboloOperando);
+                return new Literal(simboloOperando.literal || simboloOperando.lexema, tipoInferido);
+            case tiposDeSimbolos.INTERROGACAO:
+                return new ParametroAnonimo();
+            case tiposDeSimbolos.DOIS_PONTOS:
+                if (!this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.IDENTIFICADOR)) {
+                    throw this.erro(
+                        simboloOperando,
+                        'Esperado identificador após dois pontos em condição, para definição de parâmetro.'
+                    );
+                }
+
+                const simboloParametro = this.simbolos[this.atual - 1];
+                return new ParametroNomeado(simboloParametro.lexema);
+            default:
+                throw this.erro(
+                    simboloOperando,
+                    `Esperado identificador, número, texto, verdadeiro, falso ou parâmetro anônimo após operador em condição. Obtido: ${simboloOperando.tipo}.`
+                );
+        }
+    }
+
     protected logicaComumCondicoes(operacao: string): Condicao[] {
         const condicoes: Condicao[] = [];
         if (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.ONDE)) {
@@ -758,6 +789,8 @@ export abstract class AvaliadorSintaticoBase
 
                 if (
                     ![
+                        tiposDeSimbolos.DOIS_PONTOS,
+                        tiposDeSimbolos.INTERROGACAO,
                         tiposDeSimbolos.IDENTIFICADOR,
                         tiposDeSimbolos.NUMERO,
                         tiposDeSimbolos.TEXTO
@@ -765,20 +798,17 @@ export abstract class AvaliadorSintaticoBase
                 ) {
                     throw this.erro(
                         this.simbolos[this.atual],
-                        `Esperado operador válido após identificador em condição de ${operacao}.`
+                        `Esperado operando válido após identificador em condição de ${operacao}.`
                     );
                 }
 
-                const direita = this.simbolos[this.atual];
-                this.avancar();
-
-                const tipoDireita = this.inferirTipoLiteral(direita);
+                const direita = this.logicaComumOperando();
 
                 condicoes.push(
                     new Condicao(
                         new ReferenciaColuna(esquerda.lexema),
                         operador,
-                        new Literal(direita.literal || direita.lexema, tipoDireita)
+                        direita
                     )
                 );
             } while (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.E));

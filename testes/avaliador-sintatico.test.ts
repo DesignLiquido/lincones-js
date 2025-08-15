@@ -1,4 +1,6 @@
 import { AvaliadorSintatico } from '../fontes/avaliador-sintatico';
+import { Selecionar } from '../fontes/comandos';
+import { ParametroAnonimo, ParametroNomeado, ReferenciaColuna } from '../fontes/construtos';
 import { Lexador } from '../fontes/lexador';
 
 describe('Avaliador Sintático', () => {
@@ -48,17 +50,53 @@ describe('Avaliador Sintático', () => {
                     expect(resultadoAvaliadorSintatico.comandos).toHaveLength(1);
                     expect(resultadoAvaliadorSintatico.erros).toHaveLength(0);
                 });
-    
-                it('Selecionar em tabela', () => {
-                    const codigo = [
-                        'SELECIONAR NOME, EMAIL DE clientes ONDE IDADE = 18;'
-                    ];
-                    const retornoLexador = lexador.mapear(codigo);
-                    const retornoAvaliadorSintatico =
-                        avaliadorSintatico.analisar(retornoLexador);
-                    expect(retornoAvaliadorSintatico).toBeTruthy();
-                    expect(retornoAvaliadorSintatico.comandos).toHaveLength(1);
-                    expect(retornoAvaliadorSintatico.erros).toHaveLength(0);
+
+                describe('Selecionar em Tabela', () => {
+                    it('Trivial', () => {
+                        const codigo = [
+                            'SELECIONAR NOME, EMAIL DE clientes ONDE IDADE = 18;'
+                        ];
+                        const retornoLexador = lexador.mapear(codigo);
+                        const retornoAvaliadorSintatico =
+                            avaliadorSintatico.analisar(retornoLexador);
+                        expect(retornoAvaliadorSintatico).toBeTruthy();
+                        expect(retornoAvaliadorSintatico.comandos).toHaveLength(1);
+                        expect(retornoAvaliadorSintatico.erros).toHaveLength(0);
+                    });
+
+                    it('Com parâmetros nomeados', () => {
+                        const codigo = [
+                            'SELECIONAR NOME, EMAIL DE clientes ONDE IDADE = :idade;'
+                        ];
+                        const retornoLexador = lexador.mapear(codigo);
+                        const retornoAvaliadorSintatico =
+                            avaliadorSintatico.analisar(retornoLexador);
+                        expect(retornoAvaliadorSintatico).toBeTruthy();
+                        expect(retornoAvaliadorSintatico.comandos).toHaveLength(1);
+                        expect(retornoAvaliadorSintatico.erros).toHaveLength(0);
+                        const comando = retornoAvaliadorSintatico.comandos[0] as Selecionar;
+                        expect(comando.condicoes).toHaveLength(1);
+                        const condicao = comando.condicoes[0];
+                        expect(condicao.esquerda).toBeInstanceOf(ReferenciaColuna);
+                        expect(condicao.direita).toBeInstanceOf(ParametroNomeado);
+                    });
+
+                    it('Com parâmetros anônimos', () => {
+                        const codigo = [
+                            'SELECIONAR NOME, EMAIL DE clientes ONDE IDADE = ?;'
+                        ];
+                        const retornoLexador = lexador.mapear(codigo);
+                        const retornoAvaliadorSintatico =
+                            avaliadorSintatico.analisar(retornoLexador);
+                        expect(retornoAvaliadorSintatico).toBeTruthy();
+                        expect(retornoAvaliadorSintatico.comandos).toHaveLength(1);
+                        expect(retornoAvaliadorSintatico.erros).toHaveLength(0);
+                        const comando = retornoAvaliadorSintatico.comandos[0] as Selecionar;
+                        expect(comando.condicoes).toHaveLength(1);
+                        const condicao = comando.condicoes[0];
+                        expect(condicao.esquerda).toBeInstanceOf(ReferenciaColuna);
+                        expect(condicao.direita).toBeInstanceOf(ParametroAnonimo);
+                    });
                 });
             });
 
