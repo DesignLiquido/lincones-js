@@ -39,16 +39,30 @@ describe('Avaliador Sintático', () => {
                     expect(resultadoAvaliadorSintatico.erros).toHaveLength(0);
                 });
     
-                it('Inserir em Tabela', () => {
-                    const codigo = [
-                        'INSERIR EM clientes (NOME) VALORES ("Pernalonga")'
-                    ];
-                    const resultadoLexador = lexador.mapear(codigo);
-                    const resultadoAvaliadorSintatico =
-                        avaliadorSintatico.analisar(resultadoLexador);
-                    expect(resultadoAvaliadorSintatico).toBeTruthy();
-                    expect(resultadoAvaliadorSintatico.comandos).toHaveLength(1);
-                    expect(resultadoAvaliadorSintatico.erros).toHaveLength(0);
+                describe('Inserir em Tabela', () => {
+                    it('Trivial', () => {
+                        const codigo = [
+                            'INSERIR EM clientes (NOME) VALORES ("Pernalonga")'
+                        ];
+                        const resultadoLexador = lexador.mapear(codigo);
+                        const resultadoAvaliadorSintatico =
+                            avaliadorSintatico.analisar(resultadoLexador);
+                        expect(resultadoAvaliadorSintatico).toBeTruthy();
+                        expect(resultadoAvaliadorSintatico.comandos).toHaveLength(1);
+                        expect(resultadoAvaliadorSintatico.erros).toHaveLength(0);
+                    });
+
+                    it('Com parâmetros anônimos', () => {
+                        const codigo = [
+                            'INSERIR EM clientes (NOME) VALORES (?)'
+                        ];
+                        const resultadoLexador = lexador.mapear(codigo);
+                        const resultadoAvaliadorSintatico =
+                            avaliadorSintatico.analisar(resultadoLexador);
+                        expect(resultadoAvaliadorSintatico).toBeTruthy();
+                        expect(resultadoAvaliadorSintatico.comandos).toHaveLength(1);
+                        expect(resultadoAvaliadorSintatico.erros).toHaveLength(0);
+                    });
                 });
 
                 describe('Selecionar em Tabela', () => {

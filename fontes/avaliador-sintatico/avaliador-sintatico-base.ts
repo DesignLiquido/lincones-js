@@ -701,7 +701,9 @@ export abstract class AvaliadorSintaticoBase
                     tiposDeSimbolos.FALSO,
                     tiposDeSimbolos.NUMERO,
                     tiposDeSimbolos.TEXTO,
-                    tiposDeSimbolos.VERDADEIRO
+                    tiposDeSimbolos.VERDADEIRO,
+                    tiposDeSimbolos.INTERROGACAO,
+                    tiposDeSimbolos.DOIS_PONTOS
                 ].includes(this.simbolos[this.atual].tipo)
             ) {
                 throw this.erro(
@@ -710,9 +712,8 @@ export abstract class AvaliadorSintaticoBase
                 );
             }
 
-            const tipoInferido = this.inferirTipoLiteral(this.simbolos[this.atual]);
-            valores.push(new Literal(this.simbolos[this.atual].literal || this.simbolos[this.atual].lexema, tipoInferido));
-            this.avancar();
+            const operando = this.logicaComumOperando();
+            valores.push(operando);
         } while (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.VIRGULA));
 
         this.consumir(
