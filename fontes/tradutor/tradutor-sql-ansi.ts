@@ -7,7 +7,7 @@ import {
     Inserir,
     Selecionar
 } from '../comandos';
-import { Coluna, Construto } from '../construtos';
+import { Coluna, Construto, ParametroNomeado } from '../construtos';
 import { Literal } from '../construtos/literal';
 import { ReferenciaColuna } from '../construtos/referencia-coluna';
 import { Restricao } from '../construtos/restricao';
@@ -63,9 +63,6 @@ export class TradutorSqlAnsi {
 
     protected traduzirConstruto(construto: Construto) {
         switch (construto.constructor.name) {
-            case 'ReferenciaColuna':
-                const construtoReferenciaColuna = construto as ReferenciaColuna;
-                return construtoReferenciaColuna.nomeColuna;
             case 'Literal':
                 const construtoLiteral = construto as Literal;
                 switch (construtoLiteral.tipoPresumido) {
@@ -77,6 +74,14 @@ export class TradutorSqlAnsi {
                     default:
                         return `${String(construtoLiteral.valor)}`;
                 }
+            case 'ParametroAnonimo':
+                return `?`;
+            case 'ParametroNomeado':
+                const construtoParametroNomeado = construto as ParametroNomeado;
+                return `:${construtoParametroNomeado.nome}`;
+            case 'ReferenciaColuna':
+                const construtoReferenciaColuna = construto as ReferenciaColuna;
+                return construtoReferenciaColuna.nomeColuna;
         }
     }
 
@@ -106,7 +111,7 @@ export class TradutorSqlAnsi {
             resultado += ` ${this.traduzirConstruto(valorAtualizacao.coluna)} = ${this.traduzirConstruto(valorAtualizacao.valor)}, \n`;
         }
 
-        resultado = resultado.slice(0, -2);
+        resultado = resultado.slice(0, -3);
         resultado += `\nWHERE`;
 
         if (comandoAtualizar.condicoes.length > 0) {
