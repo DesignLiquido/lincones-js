@@ -3,7 +3,7 @@ import { SimboloInterface } from '../interfaces';
 import { RetornoLexador } from '../interfaces/retornos';
 
 import palavrasReservadas from './palavras-reservadas/lincones';
-import tiposDeSimbolos from '../tipos-de-simbolos/lincones';
+import tiposDeSimbolos from '../tipos-de-simbolos';
 
 export abstract class LexadorBase {
     inicioSimbolo: number;

@@ -2,7 +2,7 @@ import { RetornoLexador } from "../interfaces/retornos";
 import { LexadorBase } from "./lexador-base";
 
 import palavrasReservadas from './palavras-reservadas/sql';
-import tiposDeSimbolos from '../tipos-de-simbolos/lincones';
+import tiposDeSimbolos from '../tipos-de-simbolos';
 
 /**
  * O Lexador SQL ANSI transforma código SQL ANSI em um

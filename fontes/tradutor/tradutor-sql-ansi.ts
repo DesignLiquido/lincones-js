@@ -12,7 +12,7 @@ import { Literal } from '../construtos/literal';
 import { ReferenciaColuna } from '../construtos/referencia-coluna';
 import { Restricao } from '../construtos/restricao';
 
-import tiposDeSimbolos from '../tipos-de-simbolos/lincones';
+import tiposDeSimbolos from '../tipos-de-simbolos';
 
 /**
  * Este tradutor traduz comandos de alto nível em SQL ANSI, e a ideia é poder

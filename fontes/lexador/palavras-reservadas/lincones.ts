@@ -1,4 +1,4 @@
-import tiposDeSimbolos from '../../tipos-de-simbolos/lincones';
+import tiposDeSimbolos from '../../tipos-de-simbolos';
 
 export default {
     adicionar: tiposDeSimbolos.ADICIONAR,
