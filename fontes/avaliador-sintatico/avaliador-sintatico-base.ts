@@ -369,7 +369,9 @@ export abstract class AvaliadorSintaticoBase
 
             if (
                 ![
+                    tiposDeSimbolos.DOIS_PONTOS,
                     tiposDeSimbolos.IDENTIFICADOR,
+                    tiposDeSimbolos.INTERROGACAO,
                     tiposDeSimbolos.NUMERO,
                     tiposDeSimbolos.TEXTO,
                     tiposDeSimbolos.VERDADEIRO,
@@ -382,15 +384,12 @@ export abstract class AvaliadorSintaticoBase
                 );
             }
 
-            const direita = this.simbolos[this.atual];
-            this.avancar();
-
-            const tipoInferidoDireita = this.inferirTipoLiteral(direita);
+            const direita = this.logicaComumOperando();
 
             colunasAtualizacao.push(
                 new ColunaEValor(
                     new ReferenciaColuna(esquerda.lexema),
-                    new Literal(direita.literal || direita.lexema, tipoInferidoDireita)
+                    direita
                 )
             );
         } while (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.VIRGULA));
