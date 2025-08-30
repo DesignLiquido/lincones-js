@@ -9,21 +9,21 @@ describe('Lexador', () => {
 
     describe('mapear()', () => {
         describe('Cenário de sucesso', () => {
-            it('Sucesso com código vazio', () => {
+            it('Código vazio', () => {
                 const codigo = [''];
                 const resultado = lexador.mapear(codigo);
                 expect(resultado).toBeTruthy();
                 expect(resultado.simbolos).toHaveLength(0);
             });
 
-            it('Sucesso com código com apenas espaços', () => {
+            it('Código com apenas espaços', () => {
                 const codigo = ['    '];
                 const resultado = lexador.mapear(codigo);
                 expect(resultado).toBeTruthy();
                 expect(resultado.simbolos).toHaveLength(0);
             });
 
-            it('Sucesso com código repetindo instruções', () => {
+            it('Código repetindo instruções', () => {
                 const codigo = [
                     '((((((((((((((((((((((((((',
                     ')))))))))))))))))))))))))',
@@ -34,22 +34,53 @@ describe('Lexador', () => {
                 expect(resultado.simbolos).toHaveLength(57);
             });
 
-            it('Sucesso - CRIAR TABELA', () => {
+            it('Números', () => {
+                const codigo = [
+                    '12 ',
+                    ' 3.75'
+                ];
+                const resultado = lexador.mapear(codigo);
+                expect(resultado).toBeTruthy();
+                expect(resultado.simbolos).toHaveLength(2);
+            });
+
+            it('Comparadores', () => {
+                const codigo = [
+                    '12 > 18 ',
+                    ' 3.75 < 1',
+                    '    123 >= 456',
+                    '0 <= -1'
+                ];
+                const resultado = lexador.mapear(codigo);
+                expect(resultado).toBeTruthy();
+                expect(resultado.simbolos).toHaveLength(12);
+            });
+
+            it('Literais', () => {
+                const codigo = [
+                    "'123'"
+                ];
+                const resultado = lexador.mapear(codigo);
+                expect(resultado).toBeTruthy();
+                expect(resultado.simbolos).toHaveLength(1);
+            });
+
+            it('CRIAR TABELA', () => {
                 const codigo = ['CRIAR TABELA usuarios'];
                 const resultado = lexador.mapear(codigo);
                 expect(resultado).toBeTruthy();
                 expect(resultado.simbolos).toHaveLength(3);
             });
 
-            it('Sucesso - ATUALIZAR', () => {
+            it('ATUALIZAR', () => {
                 const codigo = ['ATUALIZAR usuarios'];
                 const resultado = lexador.mapear(codigo);
                 expect(resultado).toBeTruthy();
                 expect(resultado.simbolos).toHaveLength(2);
             });
 
-            describe('Sucesso - Simulação real', () => {
-                it('Sucesso - Criar Tabela Clientes', () => {
+            describe('Comandos completos', () => {
+                it('Criar Tabela Clientes', () => {
                     const codigo = [
                         'CRIAR TABELA clientes(id INTEIRO NAO NULO CHAVE PRIMARIA AUTOINCREMENTO, nome TEXTO(100) NAO NULO, idade INTEIRO NAO NULO, email TEXTO(255) NAO NULO, ativo LOGICO NAO NULO)'
                     ];
@@ -58,7 +89,7 @@ describe('Lexador', () => {
                     expect(resultado.simbolos).toHaveLength(38);
                 });
 
-                it('Sucesso - CRUD', () => {
+                it('CRUD', () => {
                     const codigo = [
                         'INSERIR EM clientes VALORES(1, "João", 20, "joao@gmail.com", VERDADEIRO)',
                         'INSERIR EM clientes VALORES(2, "Carlos", 23, "carlos@gmail.com", VERDADEIRO)',
@@ -70,14 +101,14 @@ describe('Lexador', () => {
                     expect(resultado.simbolos).toHaveLength(60);
                 });
 
-                it('Sucesso - Selecionar', () => {
+                it('Selecionar', () => {
                     const codigo = ['SELECIONAR * DE clientes'];
                     const resultado = lexador.mapear(codigo);
                     expect(resultado).toBeTruthy();
                     expect(resultado.simbolos).toHaveLength(4);
                 });
                 
-                it('Sucesso - Criar Tabela Clientes', () => {
+                it('Criar Tabela Clientes', () => {
                     const codigo = [
                         'CRIAR TABELA clientes(id INTEIRO NAO NULO CHAVE PRIMARIA AUTOINCREMENTO, nome TEXTO(100) NAO NULO, idade INTEIRO NAO NULO, email TEXTO(255) NAO NULO, ativo LOGICO NAO NULO);'
                     ];
@@ -86,6 +117,19 @@ describe('Lexador', () => {
                     expect(resultado.simbolos).toHaveLength(39);
                 });
             });
+        });
+
+        describe('Cenários de falha', () => {
+            it('Texto não finalizado', () => {
+                const codigo = [
+                    '"texto sem fim'
+                ];
+                const resultado = lexador.mapear(codigo);
+                expect(resultado).toBeTruthy();
+                expect(resultado.erros.length).toBe(1);
+                const erro = resultado.erros[0];
+                expect(erro.mensagem).toBe('Texto não finalizado.');
+            })
         });
     });
 });
