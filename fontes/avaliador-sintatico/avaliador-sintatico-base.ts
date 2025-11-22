@@ -77,7 +77,7 @@ export abstract class AvaliadorSintaticoBase
         }
     }
 
-    private logicaManipulacaoColuna(simboloOperacao: SimboloInterface): Coluna {
+    protected logicaManipulacaoColuna(simboloOperacao: SimboloInterface): Coluna {
         const simboloNomeDaColuna = this.consumir(
             tiposDeSimbolos.IDENTIFICADOR,
             'Esperado identificador de nome de tabela após palavra reservada "TABELA".'
@@ -99,7 +99,7 @@ export abstract class AvaliadorSintaticoBase
         return undefined;
     }
 
-    private logicaManipulacaoRestricao(simboloNomeTabela: SimboloInterface, simboloOperacao: SimboloInterface): Restricao {
+    protected logicaManipulacaoRestricao(simboloNomeTabela: SimboloInterface, simboloOperacao: SimboloInterface): Restricao {
         const simboloNomeDaRestricao = this.consumir(
             tiposDeSimbolos.IDENTIFICADOR,
             'Esperado identificador de nome de restrição após palavra reservada "RESTRIÇÃO".'
@@ -120,6 +120,37 @@ export abstract class AvaliadorSintaticoBase
         }
 
         return undefined;
+    }
+
+    protected logicaChavePrimaria() {
+        let chavePrimaria = false;
+        let autoIncremento = false;
+        if (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.CHAVE)) {
+            switch (this.simbolos[this.atual].tipo) {
+                case tiposDeSimbolos.PRIMARIA:
+                    chavePrimaria = true;
+                    this.avancar();
+                    if (
+                        this.verificarSeSimboloAtualEIgualA(
+                            tiposDeSimbolos.AUTO
+                        )
+                    ) {
+                        this.consumir(
+                            tiposDeSimbolos.INCREMENTO,
+                            'Esperado palavra reservada "INCREMENTO" após palavra reservada "AUTO" em declaração de coluna em comando de criação de tabela.'
+                        );
+                        autoIncremento = true;
+                    }
+                    break;
+                default:
+                    throw this.erro(
+                        this.simbolos[this.atual],
+                        'Esperado palavra reservada "PRIMARIA" após palavra reservada "CHAVE" na definição de coluna em comando de criação de tabela.'
+                    );
+            }
+        }
+
+        return [chavePrimaria, autoIncremento];
     }
 
     private logicaAdicionarOuAlterarColuna(
@@ -178,32 +209,7 @@ export abstract class AvaliadorSintaticoBase
         }
 
         // Chave primária?
-        let chavePrimaria = false;
-        let autoIncremento = false;
-        if (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.CHAVE)) {
-            switch (this.simbolos[this.atual].tipo) {
-                case tiposDeSimbolos.PRIMARIA:
-                    chavePrimaria = true;
-                    this.avancar();
-                    if (
-                        this.verificarSeSimboloAtualEIgualA(
-                            tiposDeSimbolos.AUTO
-                        )
-                    ) {
-                        this.consumir(
-                            tiposDeSimbolos.INCREMENTO,
-                            'Esperado palavra reservada "INCREMENTO" após palavra reservada "AUTO" em declaração de coluna em comando de criação de tabela.'
-                        );
-                        autoIncremento = true;
-                    }
-                    break;
-                default:
-                    throw this.erro(
-                        this.simbolos[this.atual],
-                        'Esperado palavra reservada "PRIMARIA" após palavra reservada "CHAVE" na definição de coluna em comando de criação de tabela.'
-                    );
-            }
-        }
+        const [chavePrimaria, autoIncremento] = this.logicaChavePrimaria();
 
         return new Coluna(
             simboloNomeDaColuna.lexema,
@@ -212,7 +218,7 @@ export abstract class AvaliadorSintaticoBase
             nulo,
             chavePrimaria,
             false,
-            false
+            autoIncremento
         )
     }
 
