@@ -28,6 +28,7 @@ export default {
     key: tiposDeSimbolos.CHAVE,
     not: tiposDeSimbolos.NAO,
     null: tiposDeSimbolos.NULO,
+    numeric: tiposDeSimbolos.NUMERO,
     order: tiposDeSimbolos.ORDENAR,
     primary: tiposDeSimbolos.PRIMARIA,
     references: tiposDeSimbolos.REFERENCIA,
@@ -40,7 +41,7 @@ export default {
     true: tiposDeSimbolos.VERDADEIRO,
     unique: tiposDeSimbolos.UNICA,
     update: tiposDeSimbolos.ATUALIZAR,
-    varchar: tiposDeSimbolos.TEXTO, // TODO: Diferenciar varchar de text.
+    varchar: tiposDeSimbolos.CARACTERES,
     values: tiposDeSimbolos.VALORES,
     view: tiposDeSimbolos.VISAO,
     where: tiposDeSimbolos.ONDE

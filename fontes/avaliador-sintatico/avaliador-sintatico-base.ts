@@ -55,7 +55,6 @@ export abstract class AvaliadorSintaticoBase
         mensagemDeErro: string
     ): ErroAvaliadorSintatico {
         const excecao = new ErroAvaliadorSintatico(simbolo, mensagemDeErro);
-        this.erros.push(excecao);
         return excecao;
     }
 
@@ -90,8 +89,8 @@ export abstract class AvaliadorSintaticoBase
                     simboloNomeDaColuna
                 );
 
-            case tiposDeSimbolos.EXCLUIR:
-                break;
+            case tiposDeSimbolos.REMOVER:
+                return this.logicaRemocaoColuna(simboloNomeDaColuna);
             case tiposDeSimbolos.RENOMEAR:
                 break;
         }
@@ -153,7 +152,7 @@ export abstract class AvaliadorSintaticoBase
         return [chavePrimaria, autoIncremento];
     }
 
-    private logicaAdicionarOuAlterarColuna(
+    protected logicaAdicionarOuAlterarColuna(
         simboloNomeDaColuna: SimboloInterface
     ): Coluna {
         // Tipo de dados
@@ -161,6 +160,7 @@ export abstract class AvaliadorSintaticoBase
         let tamanhoElemento = null;
 
         if (![
+            tiposDeSimbolos.CARACTERES,
             tiposDeSimbolos.INTEIRO,
             tiposDeSimbolos.LOGICO,
             tiposDeSimbolos.TEXTO
@@ -168,7 +168,7 @@ export abstract class AvaliadorSintaticoBase
             throw this.erro(simboloTipoElemento, `Tipo de coluna inválido para operação de adição ou alteração de coluna. Tipos válidos: inteiro, lógico ou texto. Obtido: ${simboloTipoElemento.tipo}.`);
         }
 
-        if (simboloTipoElemento.tipo === tiposDeSimbolos.TEXTO) {
+        if (simboloTipoElemento.tipo === tiposDeSimbolos.CARACTERES) {
             if (
                 this.verificarSeSimboloAtualEIgualA(
                     tiposDeSimbolos.PARENTESE_ESQUERDO
@@ -222,7 +222,7 @@ export abstract class AvaliadorSintaticoBase
         )
     }
 
-    private logicaAdicionarOuAlterarRestricao(
+    protected logicaAdicionarOuAlterarRestricao(
         simboloNomeDaTabela: SimboloInterface,
         simboloNomeDaRestricao: SimboloInterface
     ): Restricao {
@@ -238,7 +238,19 @@ export abstract class AvaliadorSintaticoBase
         return undefined;
     }
 
-    private logicaRestricaoChave(simboloNomeDaTabela: SimboloInterface, simboloNomeDaRestricao: SimboloInterface) {
+    protected logicaRemocaoColuna(simboloNomeDaColuna: SimboloInterface): Coluna {
+        // Ponto-e-vírgula opcional após declaração de remoção de coluna
+        this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.PONTO_VIRGULA);
+
+        // Retorna uma instância de Coluna contendo apenas o nome.
+        // O código que processa a operação de remoção deve interpretar
+        // a presença desta Coluna como pedido de remoção.
+        return new Coluna(
+            simboloNomeDaColuna.lexema
+        );
+    }
+
+    protected logicaRestricaoChave(simboloNomeDaTabela: SimboloInterface, simboloNomeDaRestricao: SimboloInterface) {
         const simboloTipoChave = this.avancarEDevolverAnterior();
         switch (simboloTipoChave.tipo) {
             case tiposDeSimbolos.PRIMARIA:
@@ -864,25 +876,36 @@ export abstract class AvaliadorSintaticoBase
     }
 
     protected declaracao() {
-        switch (this.simbolos[this.atual].tipo) {
-            case tiposDeSimbolos.ALTERAR:
-                return this.comandoAlterar();
-            case tiposDeSimbolos.ATUALIZAR:
-                return this.comandoAtualizar();
-            case tiposDeSimbolos.CRIAR:
-                return this.comandoCriar();
-            case tiposDeSimbolos.EXCLUIR:
-                return this.comandoExcluir();
-            case tiposDeSimbolos.INSERIR:
-                return this.comandoInserir();
-            case tiposDeSimbolos.SELECIONAR:
-                return this.comandoSelecionar();
-            default:
-                this.avancar();
-                return null;
+        try {
+            switch (this.simbolos[this.atual].tipo) {
+                case tiposDeSimbolos.ALTERAR:
+                    return this.comandoAlterar();
+                case tiposDeSimbolos.ATUALIZAR:
+                    return this.comandoAtualizar();
+                case tiposDeSimbolos.CRIAR:
+                    return this.comandoCriar();
+                case tiposDeSimbolos.EXCLUIR:
+                    return this.comandoExcluir();
+                case tiposDeSimbolos.INSERIR:
+                    return this.comandoInserir();
+                case tiposDeSimbolos.SELECIONAR:
+                    return this.comandoSelecionar();
+                default:
+                    this.avancar();
+                    return null;
+            }
+        } catch (erro) {
+            this.erros.push(erro);
+            return null;
         }
     }
 
+    /**
+     * Ponto de entrada da avaliação sintática base de LinConEs.
+     * @param retornoLexador O retorno da execução do Lexador.
+     * @returns Um retorno com o resultado da avaliação sintática, contendo
+     *          comandos e erros, quando houverem.
+     */
     analisar(retornoLexador: RetornoLexador): RetornoAvaliadorSintatico {
         this.erros = [];
         this.atual = 0;

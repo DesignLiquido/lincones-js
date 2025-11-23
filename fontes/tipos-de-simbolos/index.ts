@@ -4,6 +4,7 @@ export default {
     ALTERAR: 'ALTERAR',
     ATUALIZAR: 'ATUALIZAR',
     AUTO: 'AUTO',
+    CARACTERES: 'CARACTERES',
     COLUNA: 'COLUNA',
     CHAVE: 'CHAVE',
     CRIAR: 'CRIAR',

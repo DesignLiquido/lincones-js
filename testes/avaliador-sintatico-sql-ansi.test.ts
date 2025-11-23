@@ -32,7 +32,7 @@ describe('Avaliador Sintático (SQL ANSI)', () => {
                     expect(comando.colunas[0].tipo).toBe('INTEIRO');
                     expect(comando.colunas[0].chavePrimaria).toBe(true);
                     expect(comando.colunas[1].nomeColuna).toBe('nome');
-                    expect(comando.colunas[1].tipo).toBe('TEXTO');
+                    expect(comando.colunas[1].tipo).toBe('CARACTERES');
                     expect(comando.colunas[1].nulo).toBe(false);
                 });
 
@@ -61,7 +61,7 @@ describe('Avaliador Sintático (SQL ANSI)', () => {
                     expect(comando.colunas[0].tipo).toBe('INTEIRO');
                     expect(comando.colunas[1].tipo).toBe('LOGICO');
                     expect(comando.colunas[2].tipo).toBe('NUMERO');
-                    expect(comando.colunas[3].tipo).toBe('TEXTO');
+                    expect(comando.colunas[3].tipo).toBe('CARACTERES');
                 });
             });
 
@@ -313,7 +313,7 @@ describe('Avaliador Sintático (SQL ANSI)', () => {
                     expect(retornoAvaliadorSintatico.erros.length).toBe(0);
                     const comando = retornoAvaliadorSintatico.comandos[0] as Alterar;
                     expect(comando.operacoes.length).toBe(1);
-                    expect(comando.operacoes[0].tipo).toBe('EXCLUIR');
+                    expect(comando.operacoes[0].tipo).toBe('REMOVER');
                 });
 
                 it('Alterar coluna', () => {

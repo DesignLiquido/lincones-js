@@ -9,11 +9,12 @@ import {
     Selecionar
 } from '../comandos';
 import { SimboloInterface } from '../interfaces';
-import { Coluna, ColunaEValor, Condicao, Construto, Literal, OperacaoAlteracaoTabela, ParametroAnonimo, ParametroNomeado, ReferenciaColuna, Restricao } from '../construtos';
+import { Coluna, ColunaEValor, Construto, OperacaoAlteracaoTabela, ReferenciaColuna } from '../construtos';
+
 import tiposDeSimbolos from '../tipos-de-simbolos';
 
 /**
- * O Avaliador Sintático SQL ANSI analisa tokens em inglês (CREATE, SELECT, etc.)
+ * O Avaliador Sintático SQL ANSI analisa _tokens_ em inglês (CREATE, SELECT, etc.)
  * e produz as mesmas estruturas de comando que o avaliador sintático base.
  */
 export class AvaliadorSintaticoSqlAnsi extends AvaliadorSintaticoBase {
@@ -28,8 +29,9 @@ export class AvaliadorSintaticoSqlAnsi extends AvaliadorSintaticoBase {
             case 'BOOL':
                 return 'LOGICO';
             case 'VARCHAR':
-            case 'TEXT':
             case 'CHAR':
+                return 'CARACTERES';
+            case 'TEXT':
                 return 'TEXTO';
             case 'NUMBER':
             case 'NUMERIC':
@@ -38,6 +40,77 @@ export class AvaliadorSintaticoSqlAnsi extends AvaliadorSintaticoBase {
             default:
                 return tipoSql;
         }
+    }
+
+    protected override logicaAdicionarOuAlterarColuna(
+        simboloNomeDaColuna: SimboloInterface
+    ): Coluna {
+        // Tipo de dados
+        const simboloTipoElemento = this.avancarEDevolverAnterior();
+        let tamanhoElemento = null;
+
+        if (![
+            tiposDeSimbolos.CARACTERES,
+            tiposDeSimbolos.INTEIRO,
+            tiposDeSimbolos.LOGICO,
+            tiposDeSimbolos.NUMERO,
+            tiposDeSimbolos.TEXTO
+        ].includes(simboloTipoElemento.tipo)) {
+            throw this.erro(simboloTipoElemento, `Tipo de coluna inválido para operação de adição ou alteração de coluna. Tipos válidos: inteiro, lógico ou texto. Obtido: ${simboloTipoElemento.tipo}.`);
+        }
+
+        if (simboloTipoElemento.tipo === tiposDeSimbolos.CARACTERES) {
+            if (
+                this.verificarSeSimboloAtualEIgualA(
+                    tiposDeSimbolos.PARENTESE_ESQUERDO
+                )
+            ) {
+                tamanhoElemento = this.consumir(
+                    tiposDeSimbolos.NUMERO,
+                    'Esperado tamanho de texto de coluna em comando de criação de tabela.'
+                );
+                this.consumir(
+                    tiposDeSimbolos.PARENTESE_DIREITO,
+                    'Esperado parêntese direito após declaração de tamanho de coluna em comando de criação de tabela.'
+                );
+            }
+        }
+
+        // Nulo/Não Nulo
+        let nulo = true;
+        if (
+            this.verificarSeSimboloAtualEIgualA(
+                tiposDeSimbolos.NAO,
+                tiposDeSimbolos.NULO
+            )
+        ) {
+            const simboloAnterior = this.simbolos[this.atual - 1];
+            switch (simboloAnterior.tipo) {
+                case tiposDeSimbolos.NAO:
+                    this.consumir(
+                        tiposDeSimbolos.NULO,
+                        'Esperado palavra reservada "NULO" após palavra reservada "NÃO" em declaração de coluna em comando de criação de tabela.'
+                    );
+                    nulo = false;
+                    break;
+                case tiposDeSimbolos.NULO:
+                default:
+                    break;
+            }
+        }
+
+        // Chave primária?
+        const [chavePrimaria, autoIncremento] = this.logicaChavePrimaria();
+
+        return new Coluna(
+            simboloNomeDaColuna.lexema,
+            simboloTipoElemento.tipo,
+            tamanhoElemento ? tamanhoElemento : undefined,
+            nulo,
+            chavePrimaria,
+            false,
+            autoIncremento
+        )
     }
 
     protected override logicaChavePrimaria(): boolean[] {
@@ -278,6 +351,8 @@ export class AvaliadorSintaticoSqlAnsi extends AvaliadorSintaticoBase {
             );
         }
 
+        this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.PONTO_VIRGULA);
+
         return new Inserir(simboloInserir.linha, nomeDaTabela.lexema, colunas, valores);
     }
 
@@ -495,7 +570,7 @@ export class AvaliadorSintaticoSqlAnsi extends AvaliadorSintaticoBase {
         while (this.verificarSeSimboloAtualEIgualA(
             tiposDeSimbolos.ADICIONAR,
             tiposDeSimbolos.ALTERAR,
-            tiposDeSimbolos.EXCLUIR,
+            tiposDeSimbolos.REMOVER,
             tiposDeSimbolos.RENOMEAR
         )) {
             const simboloOperacao = this.simbolos[this.atual - 1];
@@ -505,7 +580,7 @@ export class AvaliadorSintaticoSqlAnsi extends AvaliadorSintaticoBase {
             if (elemento) {
                 operacoes.push(
                     new OperacaoAlteracaoTabela(
-                        simboloOperacao.lexema,
+                        simboloOperacao.tipo,
                         elemento
                     )
                 );
@@ -527,24 +602,29 @@ export class AvaliadorSintaticoSqlAnsi extends AvaliadorSintaticoBase {
     }
 
     protected override declaracao() {
-        switch (this.simbolos[this.atual].tipo) {
-            case tiposDeSimbolos.ALTERAR:
-                return this.comandoAlterar();
-            case tiposDeSimbolos.ATUALIZAR:
-                return this.comandoAtualizar();
-            case tiposDeSimbolos.CRIAR:
-                return this.comandoCriar();
-            case tiposDeSimbolos.REMOVER:
-                return this.comandoRemover();
-            case tiposDeSimbolos.EXCLUIR:
-                return this.comandoExcluir();
-            case tiposDeSimbolos.INSERIR:
-                return this.comandoInserir();
-            case tiposDeSimbolos.SELECIONAR:
-                return this.comandoSelecionar();
-            default:
-                this.avancar();
-                return null;
+        try {
+            switch (this.simbolos[this.atual].tipo) {
+                case tiposDeSimbolos.ALTERAR:
+                    return this.comandoAlterar();
+                case tiposDeSimbolos.ATUALIZAR:
+                    return this.comandoAtualizar();
+                case tiposDeSimbolos.CRIAR:
+                    return this.comandoCriar();
+                case tiposDeSimbolos.REMOVER:
+                    return this.comandoRemover();
+                case tiposDeSimbolos.EXCLUIR:
+                    return this.comandoExcluir();
+                case tiposDeSimbolos.INSERIR:
+                    return this.comandoInserir();
+                case tiposDeSimbolos.SELECIONAR:
+                    return this.comandoSelecionar();
+                default:
+                    this.avancar();
+                    return null;
+            }
+        } catch (erro) {
+            this.erros.push(erro);
+            return null;
         }
     }
 }
