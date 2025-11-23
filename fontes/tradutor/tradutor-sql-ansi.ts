@@ -45,8 +45,10 @@ export class TradutorSqlAnsi {
                 return 'BOOLEAN';
             case 'NUMERO':
                 return 'INT';
-            case 'TEXTO':
+            case 'CARACTERES':
                 return 'VARCHAR';
+            case 'TEXTO':
+                return 'TEXT';
         }
     }
 
@@ -223,7 +225,7 @@ export class TradutorSqlAnsi {
     private logicaManipulacaoColunas(elemento: Coluna | Restricao) {
         if (elemento instanceof Coluna) {
             let formatacaoColuna = `COLUMN ${elemento.nomeColuna} ${this.traduzirTipoDeDados(elemento.tipo)}`;
-            if (elemento.tipo === 'TEXTO') {
+            if (elemento.tipo === 'CARACTERES') {
                 formatacaoColuna += `(${elemento.tamanho.lexema})`;
             }
 
@@ -274,7 +276,7 @@ export class TradutorSqlAnsi {
                         operacao.elemento
                     )}`;
                     break;
-                case 'EXCLUIR':
+                case 'REMOVER':
                     resultado += 'BIT';
                     break;
                 case 'RENOMEAR':

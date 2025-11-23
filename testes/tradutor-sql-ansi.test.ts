@@ -33,7 +33,7 @@ describe('Tradutor (SQL ANSI)', () => {
             describe('Alterar tabela', () => {
                 it('Adição de coluna', () => {
                     const codigo = [
-                        'ALTERAR TABELA clientes ADICIONAR COLUNA email TEXTO(120)'
+                        'ALTERAR TABELA clientes ADICIONAR COLUNA email CARACTERES(120)'
                     ];
                     const retornoLexador = lexador.mapear(codigo);
                     const retornoAvaliadorSintatico =
@@ -65,7 +65,7 @@ describe('Tradutor (SQL ANSI)', () => {
 
                 it('Alteração de coluna', () => {
                     const codigo = [
-                        'ALTERAR TABELA clientes ALTERAR COLUNA email TEXTO(120)'
+                        'ALTERAR TABELA clientes ALTERAR COLUNA email CARACTERES(120)'
                     ];
                     const retornoLexador = lexador.mapear(codigo);
                     const retornoAvaliadorSintatico =

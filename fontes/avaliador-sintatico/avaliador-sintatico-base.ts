@@ -163,6 +163,7 @@ export abstract class AvaliadorSintaticoBase
             tiposDeSimbolos.CARACTERES,
             tiposDeSimbolos.INTEIRO,
             tiposDeSimbolos.LOGICO,
+            tiposDeSimbolos.NUMERO,
             tiposDeSimbolos.TEXTO
         ].includes(simboloTipoElemento.tipo)) {
             throw this.erro(simboloTipoElemento, `Tipo de coluna inválido para operação de adição ou alteração de coluna. Tipos válidos: inteiro, lógico ou texto. Obtido: ${simboloTipoElemento.tipo}.`);

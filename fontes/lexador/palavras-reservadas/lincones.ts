@@ -6,6 +6,7 @@ export default {
     alterar: tiposDeSimbolos.ALTERAR,
     atualizar: tiposDeSimbolos.ATUALIZAR,
     auto: tiposDeSimbolos.AUTO,
+    caracteres: tiposDeSimbolos.CARACTERES,
     coluna: tiposDeSimbolos.COLUNA,
     chave: tiposDeSimbolos.CHAVE,
     criar: tiposDeSimbolos.CRIAR,
