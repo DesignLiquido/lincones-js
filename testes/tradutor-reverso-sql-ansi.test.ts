@@ -32,21 +32,8 @@ describe('Tradutor Reverso (SQL ANSI)', () => {
                 expect(resultado).toContain('NAO NULO');
             });
 
-            // TODO: Verificar se auto-incremento é ANSI.
-            /* it('Criar com AUTO INCREMENT', () => {
-                const resultadoLexador = lexador.mapear([
-                    "CREATE TABLE produtos (id INTEGER PRIMARY KEY AUTOINCREMENT, nome VARCHAR(100))"
-                ]);
-                const resultadoAvaliadorSintatico = avaliadorSintatico.analisar(resultadoLexador);
-                const resultado = tradutor.traduzir(resultadoAvaliadorSintatico.comandos);
-
-                expect(resultado).toBeTruthy();
-                expect(resultado).toContain('CRIAR TABELA "produtos"');
-                expect(resultado).toContain('AUTO INCREMENTO');
-            }); */
-
             describe('Alterar tabela', () => {
-                it.skip('Adição de coluna', () => {
+                it('Adição de coluna', () => {
                     const resultadoLexador = lexador.mapear([
                         "ALTER TABLE clientes ADD COLUMN telefone VARCHAR(20)"
                     ]);
@@ -60,10 +47,11 @@ describe('Tradutor Reverso (SQL ANSI)', () => {
                     expect(resultado).toContain('CARACTERES');
                 });
 
-                it.skip('Adição de coluna com NOT NULL', () => {
+                it('Adição de coluna com NOT NULL', () => {
                     const resultadoLexador = lexador.mapear([
                         "ALTER TABLE produtos ADD COLUMN categoria TEXT NOT NULL"
                     ]);
+
                     const resultadoAvaliadorSintatico = avaliadorSintatico.analisar(resultadoLexador);
                     const resultado = tradutor.traduzir(resultadoAvaliadorSintatico.comandos);
 
@@ -71,10 +59,10 @@ describe('Tradutor Reverso (SQL ANSI)', () => {
                     expect(resultado).toContain('ALTERAR TABELA produtos');
                     expect(resultado).toContain('ADICIONAR COLUNA');
                     expect(resultado).toContain('categoria');
-                    expect(resultado).toContain('NAO NULO');
+                    expect(resultado).toContain('NÃO NULO');
                 });
 
-                it.skip('Remoção de coluna', () => {
+                it('Remoção de coluna', () => {
                     const resultadoLexador = lexador.mapear([
                         "ALTER TABLE clientes DROP COLUMN telefone"
                     ]);
@@ -83,14 +71,15 @@ describe('Tradutor Reverso (SQL ANSI)', () => {
 
                     expect(resultado).toBeTruthy();
                     expect(resultado).toContain('ALTERAR TABELA clientes');
-                    expect(resultado).toContain('EXCLUIR COLUNA');
+                    expect(resultado).toContain('REMOVER COLUNA');
                     expect(resultado).toContain('telefone');
                 });
 
-                it.skip('Alterar coluna', () => {
+                it('Alterar coluna', () => {
                     const resultadoLexador = lexador.mapear([
                         "ALTER TABLE produtos ALTER COLUMN preco NUMERIC"
                     ]);
+
                     const resultadoAvaliadorSintatico = avaliadorSintatico.analisar(resultadoLexador);
                     const resultado = tradutor.traduzir(resultadoAvaliadorSintatico.comandos);
 
@@ -101,10 +90,11 @@ describe('Tradutor Reverso (SQL ANSI)', () => {
                 });
             });
 
-            it.skip('Atualizar', () => {
+            it('Atualizar', () => {
                 const resultadoLexador = lexador.mapear([
                     'UPDATE clientes SET nome = "João Pedro", idade = 31, ativo = TRUE, casado = FALSE WHERE id = 1'
                 ]);
+
                 const resultadoAvaliadorSintatico = avaliadorSintatico.analisar(resultadoLexador);
                 const resultado = tradutor.traduzir(resultadoAvaliadorSintatico.comandos);
 
@@ -123,7 +113,7 @@ describe('Tradutor Reverso (SQL ANSI)', () => {
                 expect(resultado).toContain('id');
             });
 
-            it.skip('Atualizar com múltiplas condições', () => {
+            it('Atualizar com múltiplas condições', () => {
                 const resultadoLexador = lexador.mapear([
                     'UPDATE produtos SET preco = 100 WHERE categoria = "eletronicos" AND estoque > 0'
                 ]);
@@ -138,10 +128,11 @@ describe('Tradutor Reverso (SQL ANSI)', () => {
                 expect(resultado).toContain('estoque');
             });
 
-            it.skip('Atualizar sem condições', () => {
+            it('Atualizar sem condições', () => {
                 const resultadoLexador = lexador.mapear([
                     'UPDATE clientes SET ativo = FALSE'
                 ]);
+
                 const resultadoAvaliadorSintatico = avaliadorSintatico.analisar(resultadoLexador);
                 const resultado = tradutor.traduzir(resultadoAvaliadorSintatico.comandos);
 
@@ -151,7 +142,7 @@ describe('Tradutor Reverso (SQL ANSI)', () => {
                 expect(resultado).not.toContain('ONDE');
             });
 
-            it.skip('Inserir', () => {
+            it('Inserir', () => {
                 const resultadoLexador = lexador.mapear([
                     'INSERT INTO clientes (nome, idade, ativo, email) VALUES ("Pernalonga", 18, TRUE, "pernalonga@warnerbros.com")'
                 ]);
@@ -167,7 +158,7 @@ describe('Tradutor Reverso (SQL ANSI)', () => {
                 expect(resultado).toContain('pernalonga@warnerbros.com');
             });
 
-            it.skip('Inserir com valores booleanos', () => {
+            it('Inserir com valores booleanos', () => {
                 const resultadoLexador = lexador.mapear([
                     'INSERT INTO usuarios (nome, ativo, admin) VALUES ("Maria", TRUE, FALSE)'
                 ]);
@@ -248,7 +239,7 @@ describe('Tradutor Reverso (SQL ANSI)', () => {
                 expect(resultado).toContain('DE clientes');
             });
 
-            it.skip('Selecionar com condição', () => {
+            it('Selecionar com condição', () => {
                 const resultadoLexador = lexador.mapear([
                     'SELECT nome, email FROM clientes WHERE idade >= 18'
                 ]);
@@ -263,7 +254,7 @@ describe('Tradutor Reverso (SQL ANSI)', () => {
                 expect(resultado).toContain('idade');
             });
 
-            it.skip('Selecionar com múltiplas condições', () => {
+            it('Selecionar com múltiplas condições', () => {
                 const resultadoLexador = lexador.mapear([
                     'SELECT * FROM produtos WHERE preco > 100 AND categoria = "eletronicos"'
                 ]);
@@ -274,6 +265,7 @@ describe('Tradutor Reverso (SQL ANSI)', () => {
                 expect(resultado).toContain('SELECIONAR *');
                 expect(resultado).toContain('ONDE');
                 expect(resultado).toContain('preco');
+                expect(resultado).toContain(' E ');
                 expect(resultado).toContain('categoria');
             });
 
@@ -290,18 +282,19 @@ describe('Tradutor Reverso (SQL ANSI)', () => {
                 expect(resultado).toContain('valor');
             });
 
-            it.skip('Excluir tabela', () => {
+            it('Excluir tabela', () => {
                 const resultadoLexador = lexador.mapear([
                     'DROP TABLE clientes_antigos'
                 ]);
+
                 const resultadoAvaliadorSintatico = avaliadorSintatico.analisar(resultadoLexador);
                 const resultado = tradutor.traduzir(resultadoAvaliadorSintatico.comandos);
 
                 expect(resultado).toBeTruthy();
-                expect(resultado).toContain('EXCLUIR TABELA clientes_antigos');
+                expect(resultado).toContain('REMOVER TABELA clientes_antigos');
             });
 
-            it.skip('Excluir visão', () => {
+            it('Excluir visão', () => {
                 const resultadoLexador = lexador.mapear([
                     'DROP VIEW relatorio_vendas'
                 ]);
@@ -309,10 +302,10 @@ describe('Tradutor Reverso (SQL ANSI)', () => {
                 const resultado = tradutor.traduzir(resultadoAvaliadorSintatico.comandos);
 
                 expect(resultado).toBeTruthy();
-                expect(resultado).toContain('EXCLUIR VISÃO relatorio_vendas');
+                expect(resultado).toContain('REMOVER VISAO relatorio_vendas');
             });
 
-            it.skip('Múltiplos comandos', () => {
+            it('Múltiplos comandos', () => {
                 const resultadoLexador = lexador.mapear([
                     'CREATE TABLE usuarios (id INT PRIMARY KEY);',
                     'INSERT INTO usuarios (id) VALUES (1);',
@@ -322,8 +315,8 @@ describe('Tradutor Reverso (SQL ANSI)', () => {
                 const resultado = tradutor.traduzir(resultadoAvaliadorSintatico.comandos);
 
                 expect(resultado).toBeTruthy();
-                expect(resultado).toContain('CRIAR TABELA "usuarios"');
-                expect(resultado).toContain('INSERIR EM "usuarios"');
+                expect(resultado).toContain('CRIAR TABELA usuarios');
+                expect(resultado).toContain('INSERIR EM usuarios');
                 expect(resultado).toContain('SELECIONAR *');
             });
         });

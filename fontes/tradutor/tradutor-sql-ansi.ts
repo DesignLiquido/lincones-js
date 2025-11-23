@@ -5,9 +5,10 @@ import {
     Criar,
     Excluir,
     Inserir,
+    RemoverEntidade,
     Selecionar
 } from '../comandos';
-import { Coluna, Construto, ParametroNomeado } from '../construtos';
+import { Coluna, Construto, ParametroAnonimo, ParametroNomeado } from '../construtos';
 import { Literal } from '../construtos/literal';
 import { ReferenciaColuna } from '../construtos/referencia-coluna';
 import { Restricao } from '../construtos/restricao';
@@ -64,8 +65,8 @@ export class TradutorSqlAnsi {
     }
 
     protected traduzirConstruto(construto: Construto) {
-        switch (construto.constructor.name) {
-            case 'Literal':
+        switch (construto.constructor) {
+            case Literal:
                 const construtoLiteral = construto as Literal;
                 switch (construtoLiteral.tipoPresumido) {
                     case tiposDeSimbolos.LOGICO:
@@ -76,12 +77,12 @@ export class TradutorSqlAnsi {
                     default:
                         return `${String(construtoLiteral.valor)}`;
                 }
-            case 'ParametroAnonimo':
+            case ParametroAnonimo:
                 return `?`;
-            case 'ParametroNomeado':
+            case ParametroNomeado:
                 const construtoParametroNomeado = construto as ParametroNomeado;
                 return `:${construtoParametroNomeado.nome}`;
-            case 'ReferenciaColuna':
+            case ReferenciaColuna:
                 const construtoReferenciaColuna = construto as ReferenciaColuna;
                 return construtoReferenciaColuna.nomeColuna;
         }
@@ -185,6 +186,21 @@ export class TradutorSqlAnsi {
 
         resultado = resultado.slice(0, -2);
         resultado += `)`;
+
+        return resultado;
+    }
+
+    protected traduzirComandoRemoverEntidade(comandoRemoverEntidade: RemoverEntidade) {
+        let resultado = 'DROP ';
+
+        switch (comandoRemoverEntidade.tipoEntidade) {
+            case 'TABELA':
+                resultado += `TABLE ${comandoRemoverEntidade.nomeEntidade}`;
+                break;
+            case 'VISÃO':
+                resultado += `VIEW ${comandoRemoverEntidade.nomeEntidade}`;
+                break;
+        }
 
         return resultado;
     }
@@ -293,6 +309,7 @@ export class TradutorSqlAnsi {
         Criar: this.traduzirComandoCriar.bind(this),
         Excluir: this.traduzirComandoExcluir.bind(this),
         Inserir: this.traduzirComandoInserir.bind(this),
+        RemoverEntidade: this.traduzirComandoRemoverEntidade.bind(this),
         Selecionar: this.traduzirComandoSelecionar.bind(this)
     };
 

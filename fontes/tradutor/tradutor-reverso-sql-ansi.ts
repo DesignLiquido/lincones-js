@@ -1,5 +1,7 @@
-import { Alterar, Comando, Criar } from "../comandos";
-import { Coluna, OperacaoAlteracaoTabela, Restricao } from "../construtos";
+import { Alterar, Atualizar, Comando, Criar, RemoverEntidade } from "../comandos";
+import { Coluna, Construto, Literal, OperacaoAlteracaoTabela, ParametroAnonimo, ParametroNomeado, ReferenciaColuna, Restricao } from "../construtos";
+
+import tiposDeSimbolos from '../tipos-de-simbolos';
 
 /**
  * Este tradutor traduz comandos de alto nível em LinConEs, 
@@ -18,8 +20,8 @@ export class TradutorReversoSqlAnsi {
         Atualizar: this.traduzirComandoAtualizar.bind(this),
         Criar: this.traduzirComandoCriar.bind(this),
         Excluir: this.traduzirComandoExcluir.bind(this),
-        // ExcluirEntidade: this.traduzirComandoExcluirEntidade.bind(this),
         Inserir: this.traduzirComandoInserir.bind(this),
+        RemoverEntidade: this.traduzirComandoRemoverEntidade.bind(this),
         Selecionar: this.traduzirComandoSelecionar.bind(this)
     };
 
@@ -113,25 +115,23 @@ export class TradutorReversoSqlAnsi {
         return `INSERIR EM ${tabela} (${colList})\nVALORES (${vals})`;
     }
 
-    protected traduzirComandoAtualizar(comando: Comando): string {
-        const cmd: any = comando as any;
-        const tabela = this.traduzirIdentificador(cmd.tabela || cmd.nome || cmd.table || "");
-        const valores = cmd.valores || cmd.set;
-        const condicoes = this.traduzirCondicoes(cmd.condicoes || cmd.where);
-
-        if (!tabela || !valores) return "";
-
-        let resultado = `ATUALIZAR ${tabela}\n`;
+    protected traduzirComandoAtualizar(comando: Atualizar): string {
+        let resultado = `ATUALIZAR ${comando.tabela}\n`;
         resultado += `DEFINIR`;
 
-        const pares = Object.keys(valores)
-            .map((c) => `${this.traduzirIdentificador(c)} = ${this.traduzirValor((valores as any)[c])}`)
-            .join(", \n");
+        for (const valorAtualizacao of comando.colunasEValores) {
+            resultado += ` ${this.traduzirConstruto(valorAtualizacao.coluna)} = ${this.traduzirConstruto(valorAtualizacao.valor)}, \n`;
+        }
 
-        resultado += ` ${pares}`;
+        resultado = resultado.slice(0, -3);
 
-        if (condicoes) {
-            resultado += `\nONDE ${condicoes}`;
+        if (comando.condicoes.length > 0) {
+            resultado += `\nONDE`;
+            for (const condicao of comando.condicoes) {
+                resultado += ` ${this.traduzirConstruto(condicao.esquerda)} ${this.traduzirOperador(condicao.operador)} ${this.traduzirConstruto(condicao.direita)}\nE`;
+            }
+
+            resultado = resultado.slice(0, -4);
         }
 
         return resultado;
@@ -151,6 +151,10 @@ export class TradutorReversoSqlAnsi {
         }
 
         return resultado;
+    }
+
+    protected traduzirComandoRemoverEntidade(comandoRemoverEntidade: RemoverEntidade) {
+        return `REMOVER ${comandoRemoverEntidade.tipoEntidade} ${comandoRemoverEntidade.nomeEntidade}`;
     }
 
     protected traduzirComandoSelecionar(comando: Comando): string {
@@ -198,17 +202,22 @@ export class TradutorReversoSqlAnsi {
         return resultado;
     }
 
-    protected traduzirColunaComTipo(coluna: Coluna): string {
-        let resultado = `${' '.repeat(this.tamanhoIndentacao)}${this.traduzirIdentificador(coluna.nomeColuna)}`;
+    protected traduzirColunaComTipo(coluna: Coluna, indentar = true): string {
+        let resultado = "";
+        if (indentar) {
+            resultado += `${' '.repeat(this.tamanhoIndentacao)}`;
+        }
+
+        resultado += `${this.traduzirIdentificador(coluna.nomeColuna)}`;
 
         if (coluna.tipo) {
             resultado += `${String(coluna.tipo)} `;
         }
 
         if (coluna.nulo) {
-            resultado += `NAO NULO `;
-        } else {
             resultado += `NULO `;
+        } else {
+            resultado += `NÃO NULO `;
         }
 
         // TODO: Implementar mais futuramente.
@@ -247,20 +256,38 @@ export class TradutorReversoSqlAnsi {
         return resultado;
     }
 
-    protected traduzirTipoDeDados(tipo: string) {
-        switch (tipo) {
-            case 'INTEIRO':
-                return 'INT';
-            case 'LOGICO':
-            case 'LÓGICO':
-                return 'BOOLEAN';
-            case 'NUMERO':
-            case 'NÚMERO':
-                return 'NUMERIC';
-            case 'CARACTERES':
-                return 'VARCHAR';
-            case 'TEXTO':
-                return 'TEXT';
+    protected traduzirConstruto(construto: Construto) {
+        switch (construto.constructor) {
+            case Literal:
+                const construtoLiteral = construto as Literal;
+                switch (construtoLiteral.tipoPresumido) {
+                    case tiposDeSimbolos.LOGICO:
+                        return construtoLiteral.valor.toUpperCase();
+                    case tiposDeSimbolos.CARACTERES:
+                    case tiposDeSimbolos.TEXTO:
+                        return `'${construtoLiteral.valor}'`;
+                    default:
+                        return `${String(construtoLiteral.valor)}`;
+                }
+            case ParametroAnonimo:
+                return `?`;
+            case ParametroNomeado:
+                const construtoParametroNomeado = construto as ParametroNomeado;
+                return `:${construtoParametroNomeado.nome}`;
+            case ReferenciaColuna:
+                const construtoReferenciaColuna = construto as ReferenciaColuna;
+                return construtoReferenciaColuna.nomeColuna;
+        }
+    }
+
+    protected traduzirOperador(operador: string) {
+        switch (operador) {
+            case tiposDeSimbolos.IGUAL:
+                return '=';
+            case tiposDeSimbolos.VERDADEIRO:
+                return true;
+            case tiposDeSimbolos.FALSO:
+                return false;
         }
     }
 
@@ -275,14 +302,9 @@ export class TradutorReversoSqlAnsi {
         }
     }
 
-    protected logicaManipulacaoColunas(elemento: Coluna | Restricao) {
+    protected logicaManipulacaoColunasOuRestricoes(elemento: Coluna | Restricao) {
         if (elemento instanceof Coluna) {
-            let formatacaoColuna = `COLUNA ${elemento.nomeColuna} ${this.traduzirTipoDeDados(elemento.tipo)}`;
-            if (elemento.tipo === 'CARACTERES') {
-                formatacaoColuna += `(${elemento.tamanho.lexema})`;
-            }
-
-            formatacaoColuna += ` `;
+            const formatacaoColuna = `COLUNA ${this.traduzirColunaComTipo(elemento, false)}`;
             return formatacaoColuna;
         }
 
@@ -307,13 +329,16 @@ export class TradutorReversoSqlAnsi {
     protected traduzirAlteracaoColuna(operacao: OperacaoAlteracaoTabela): string {
         switch (operacao.tipo) {
             case "ADICIONAR":
-                return `ADICIONAR ${this.logicaManipulacaoColunas(
+                return `ADICIONAR ${this.logicaManipulacaoColunasOuRestricoes(
                     operacao.elemento
                 )}`;
 
             case "REMOVER":
+                if (operacao.elemento instanceof Coluna) {
+                    return `REMOVER COLUNA ${operacao.elemento.nomeColuna} `;
+                }
                 /* if (operacao.coluna) {
-                    return `REMOVER COLUNA ${this.traduzirIdentificador(operacao.coluna)}`;
+                    
                 }
                 if (operacao.constraint) {
                     return `REMOVER RESTRIÇÃO ${this.traduzirIdentificador(operacao.constraint)}`;
@@ -325,7 +350,7 @@ export class TradutorReversoSqlAnsi {
                 break;
 
             case "ALTERAR":
-                return `ALTERAR COLUNA ${this.logicaManipulacaoColunas(
+                return `ALTERAR ${this.logicaManipulacaoColunasOuRestricoes(
                     operacao.elemento
                 )}`;
         }

@@ -4,7 +4,7 @@ import {
     Comando,
     Criar,
     Excluir,
-    ExcluirEntidade,
+    RemoverEntidade,
     Inserir,
     Selecionar
 } from '../comandos';
@@ -274,21 +274,6 @@ export abstract class AvaliadorSintaticoBase
                     nomeTabelaReferenciada.lexema,
                     [nomeColunaReferenciada.lexema]
                 );
-        }
-    }
-
-    protected inferirTipoLiteral(simboloLiteral: SimboloInterface): 'INTEIRO' | 'LOGICO' | 'NUMERO' | 'TEXTO' {
-        const lexemaOuLiteral = simboloLiteral.lexema || simboloLiteral.literal;
-        switch (lexemaOuLiteral.constructor.name) {
-            case 'String':
-                if (['VERDADEIRO', 'FALSO'].includes(lexemaOuLiteral.toUpperCase())) {
-                    return 'LOGICO';
-                }
-                return 'TEXTO';
-            case 'Number':
-                return 'NUMERO';
-            default:
-                throw new ErroAvaliadorSintatico(simboloLiteral, `Tipo ${simboloLiteral.lexema} não pode ser inferido.`);
         }
     }
 
@@ -601,50 +586,39 @@ export abstract class AvaliadorSintaticoBase
         );
     }
 
-    protected comandoExcluirTabela(): ExcluirEntidade {
-        const nomeDaTabela = this.consumir(
+    protected comandoRemoverEntidade(): RemoverEntidade {
+        // Essa linha nunca deve retornar erro.
+        this.consumir(
+            tiposDeSimbolos.REMOVER,
+            'Esperado palavra reservada "REMOVER".'
+        );
+
+        if (!this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.TABELA, tiposDeSimbolos.VISAO)) {
+            throw this.erro(this.simbolos[this.atual], `Esperado palavras reservadas "TABELA" ou "VISÃO" após palavra reservada "REMOVER".`);
+        }
+
+        const simboloTipoEntidade = this.simbolos[this.atual - 1];
+
+        const nomeDaEntidade = this.consumir(
             tiposDeSimbolos.IDENTIFICADOR,
-            'Esperado identificador de nome de tabela após palavra reservada "TABELA".'
+            'Esperado identificador de nome de tabela após palavras reservadas "TABELA" ou "VISÃO".'
         );
 
         this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.PONTO_VIRGULA);
 
-        return new ExcluirEntidade(
-            nomeDaTabela.linha,
-            nomeDaTabela.lexema,
-            'TABELA'
+        return new RemoverEntidade(
+            nomeDaEntidade.linha,
+            nomeDaEntidade.lexema,
+            simboloTipoEntidade.lexema.toUpperCase()
         );
     }
 
-    protected comandoExcluirVisao(): ExcluirEntidade {
-        const nomeDaVisao = this.consumir(
-            tiposDeSimbolos.IDENTIFICADOR,
-            'Esperado identificador de nome de visão após palavra reservada "VISÃO".'
-        );
-
-        this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.PONTO_VIRGULA);
-
-        return new ExcluirEntidade(
-            nomeDaVisao.linha,
-            nomeDaVisao.lexema,
-            'VISÃO'
-        );
-    }
-
-    protected comandoExcluir(): Excluir | ExcluirEntidade {
+    protected comandoExcluir(): Excluir {
         // Essa linha nunca deve retornar erro.
         const simboloExcluir = this.consumir(
             tiposDeSimbolos.EXCLUIR,
             'Esperado palavra reservada "EXCLUIR".'
         );
-
-        if (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.TABELA)) {
-            return this.comandoExcluirTabela();
-        }
-
-        if (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.VISAO)) {
-            return this.comandoExcluirVisao();
-        }
 
         if (!this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.DE, tiposDeSimbolos.EM)) {
             throw this.erro(this.simbolos[this.atual], 'Esperado palavra reservada "DE" ou "EM" após palavra reservada "EXCLUIR".');
@@ -749,17 +723,28 @@ export abstract class AvaliadorSintaticoBase
         return new Inserir(simboloInserir.linha, nomeDaTabela.lexema, colunas, valores);
     }
 
+    protected inferirTipoOperando(tipoOperando: string): 'CARACTERES' | 'INTEIRO' | 'LOGICO' | 'NUMERO' | 'TEXTO' {
+        switch (tipoOperando) {
+            case tiposDeSimbolos.VERDADEIRO:
+            case tiposDeSimbolos.FALSO:
+            case tiposDeSimbolos.LOGICO:
+                return 'LOGICO';
+            default:
+                return tipoOperando as 'CARACTERES' | 'INTEIRO' | 'LOGICO' | 'NUMERO' | 'TEXTO';
+        }
+    }
+
     protected logicaComumOperando(): Construto {
         const simboloOperando = this.avancarEDevolverAnterior();
         switch (simboloOperando.tipo) {
             case tiposDeSimbolos.IDENTIFICADOR:
                 return new ReferenciaColuna(simboloOperando.lexema);
+            case tiposDeSimbolos.CARACTERES:
             case tiposDeSimbolos.NUMERO:
             case tiposDeSimbolos.TEXTO:
             case tiposDeSimbolos.VERDADEIRO:
             case tiposDeSimbolos.FALSO:
-                const tipoInferido = this.inferirTipoLiteral(simboloOperando);
-                return new Literal(simboloOperando.literal || simboloOperando.lexema, tipoInferido);
+                return new Literal(simboloOperando.literal || simboloOperando.lexema, this.inferirTipoOperando(simboloOperando.tipo));
             case tiposDeSimbolos.INTERROGACAO:
                 return new ParametroAnonimo();
             case tiposDeSimbolos.DOIS_PONTOS:
@@ -889,6 +874,8 @@ export abstract class AvaliadorSintaticoBase
                     return this.comandoExcluir();
                 case tiposDeSimbolos.INSERIR:
                     return this.comandoInserir();
+                case tiposDeSimbolos.REMOVER:
+                    return this.comandoRemoverEntidade();
                 case tiposDeSimbolos.SELECIONAR:
                     return this.comandoSelecionar();
                 default:

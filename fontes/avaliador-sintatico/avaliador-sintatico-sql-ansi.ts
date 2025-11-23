@@ -4,12 +4,12 @@ import {
     Atualizar,
     Criar,
     Excluir,
-    ExcluirEntidade,
+    RemoverEntidade,
     Inserir,
     Selecionar
 } from '../comandos';
 import { SimboloInterface } from '../interfaces';
-import { Coluna, ColunaEValor, Construto, OperacaoAlteracaoTabela, ReferenciaColuna } from '../construtos';
+import { Coluna, ColunaEValor, Construto, Literal, OperacaoAlteracaoTabela, ParametroAnonimo, ParametroNomeado, ReferenciaColuna } from '../construtos';
 
 import tiposDeSimbolos from '../tipos-de-simbolos';
 
@@ -145,6 +145,38 @@ export class AvaliadorSintaticoSqlAnsi extends AvaliadorSintaticoBase {
         }
 
         return [chavePrimaria, autoIncremento];
+    }
+
+    protected logicaComumOperando(): Construto {
+        const simboloOperando = this.avancarEDevolverAnterior();
+        switch (simboloOperando.tipo) {
+            case tiposDeSimbolos.IDENTIFICADOR:
+                return new ReferenciaColuna(simboloOperando.lexema);
+            case tiposDeSimbolos.CARACTERES:
+            case tiposDeSimbolos.NUMERO:
+            case tiposDeSimbolos.TEXTO:
+                return new Literal(simboloOperando.literal || simboloOperando.lexema, this.inferirTipoOperando(simboloOperando.tipo));
+            case tiposDeSimbolos.VERDADEIRO:
+            case tiposDeSimbolos.FALSO:
+                return new Literal(simboloOperando.lexema === 'TRUE' ? 'VERDADEIRO' : 'FALSO', this.inferirTipoOperando(simboloOperando.tipo));
+            case tiposDeSimbolos.INTERROGACAO:
+                return new ParametroAnonimo();
+            case tiposDeSimbolos.DOIS_PONTOS:
+                if (!this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.IDENTIFICADOR)) {
+                    throw this.erro(
+                        simboloOperando,
+                        'Esperado identificador após dois pontos em condição, para definição de parâmetro.'
+                    );
+                }
+
+                const simboloParametro = this.simbolos[this.atual - 1];
+                return new ParametroNomeado(simboloParametro.lexema);
+            default:
+                throw this.erro(
+                    simboloOperando,
+                    `Esperado identificador, número, texto, verdadeiro, falso ou parâmetro anônimo após operador em condição. Obtido: ${simboloOperando.tipo}.`
+                );
+        }
     }
 
     protected override comandoCriacaoColuna(): Coluna {
@@ -427,68 +459,30 @@ export class AvaliadorSintaticoSqlAnsi extends AvaliadorSintaticoBase {
         );
     }
 
-    protected comandoRemover(): ExcluirEntidade {
-        // DROP
-        const simboloRemover = this.consumir(
+    protected override comandoRemoverEntidade(): RemoverEntidade {
+        // Essa linha nunca deve retornar erro.
+        this.consumir(
             tiposDeSimbolos.REMOVER,
-            'Esperado palavra reservada "DROP".'
+            'Esperado palavra reservada "REMOVER".'
         );
 
-        // TABLE ou VIEW
-        if (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.TABELA)) {
-            const nomeDaTabela = this.consumir(
-                tiposDeSimbolos.IDENTIFICADOR,
-                'Esperado identificador de nome de tabela após palavra reservada "TABLE".'
-            );
-            this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.PONTO_VIRGULA);
-            return new ExcluirEntidade(
-                nomeDaTabela.linha,
-                nomeDaTabela.lexema,
-                'TABELA'
-            );
+        if (!this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.TABELA, tiposDeSimbolos.VISAO)) {
+            throw this.erro(this.simbolos[this.atual], `Esperado palavras reservadas "TABELA" ou "VISÃO" após palavra reservada "REMOVER".`);
         }
 
-        if (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.VISAO)) {
-            const nomeDaVisao = this.consumir(
-                tiposDeSimbolos.IDENTIFICADOR,
-                'Esperado identificador de nome de visão após palavra reservada "VIEW".'
-            );
-            this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.PONTO_VIRGULA);
-            return new ExcluirEntidade(
-                nomeDaVisao.linha,
-                nomeDaVisao.lexema,
-                'VISÃO'
-            );
-        }
+        const simboloTipoEntidade = this.simbolos[this.atual - 1];
 
-        throw this.erro(this.simbolos[this.atual], 'Esperado palavra reservada "TABLE" ou "VIEW" após "DROP".');
-    }
-
-    protected override comandoExcluir(): Excluir | ExcluirEntidade {
-        // DELETE
-        const simboloExcluir = this.consumir(
-            tiposDeSimbolos.EXCLUIR,
-            'Esperado palavra reservada "DELETE".'
-        );
-
-        // FROM
-        if (!this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.DE, tiposDeSimbolos.EM)) {
-            throw this.erro(this.simbolos[this.atual], 'Esperado palavra reservada "FROM" após palavra reservada "DELETE".');
-        }
-
-        const nomeDaTabela = this.consumir(
+        const nomeDaEntidade = this.consumir(
             tiposDeSimbolos.IDENTIFICADOR,
-            'Esperado identificador de nome de tabela após palavra reservada "FROM".'
+            'Esperado identificador de nome de tabela após palavras reservadas "TABELA" ou "VISÃO".'
         );
-
-        const condicoes = this.logicaComumCondicoes('exclusão');
 
         this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.PONTO_VIRGULA);
 
-        return new Excluir(
-            simboloExcluir.linha,
-            nomeDaTabela.lexema,
-            condicoes
+        return new RemoverEntidade(
+            nomeDaEntidade.linha,
+            nomeDaEntidade.lexema,
+            simboloTipoEntidade.tipo.toUpperCase()
         );
     }
 
@@ -610,12 +604,12 @@ export class AvaliadorSintaticoSqlAnsi extends AvaliadorSintaticoBase {
                     return this.comandoAtualizar();
                 case tiposDeSimbolos.CRIAR:
                     return this.comandoCriar();
-                case tiposDeSimbolos.REMOVER:
-                    return this.comandoRemover();
                 case tiposDeSimbolos.EXCLUIR:
                     return this.comandoExcluir();
                 case tiposDeSimbolos.INSERIR:
                     return this.comandoInserir();
+                case tiposDeSimbolos.REMOVER:
+                    return this.comandoRemoverEntidade();
                 case tiposDeSimbolos.SELECIONAR:
                     return this.comandoSelecionar();
                 default:

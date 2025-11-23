@@ -1,6 +1,6 @@
 import { Comando } from "./comando";
 
-export class ExcluirEntidade extends Comando {
+export class RemoverEntidade extends Comando {
     tipoEntidade: 'TABELA' | 'VISÃO';
     nomeEntidade: string;
 
