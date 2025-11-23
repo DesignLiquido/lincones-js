@@ -1,4 +1,5 @@
-import { Comando } from "../comandos";
+import { Alterar, Comando, Criar } from "../comandos";
+import { Coluna, OperacaoAlteracaoTabela, Restricao } from "../construtos";
 
 /**
  * Este tradutor traduz comandos de alto nível em LinConEs, 
@@ -24,7 +25,7 @@ export class TradutorReversoSqlAnsi {
 
     protected traduzirIdentificador(nome: string): string {
         if (!nome) return "";
-        return `"${String(nome).replace(/"/g, '""')}"`;
+        return `${String(nome).replace(/"/g, '""')} `;
     }
 
     protected traduzirValor(valor: any): string {
@@ -197,119 +198,146 @@ export class TradutorReversoSqlAnsi {
         return resultado;
     }
 
-    protected traduzirColunaComTipo(coluna: any): string {
-        let resultado = `${' '.repeat(this.tamanhoIndentacao)}${this.traduzirIdentificador(coluna.nome || coluna.name || coluna.column)}`;
+    protected traduzirColunaComTipo(coluna: Coluna): string {
+        let resultado = `${' '.repeat(this.tamanhoIndentacao)}${this.traduzirIdentificador(coluna.nomeColuna)}`;
 
-        if (coluna.tipo || coluna.type) {
-            resultado += ` ${String(coluna.tipo || coluna.type)}`;
+        if (coluna.tipo) {
+            resultado += `${String(coluna.tipo)} `;
         }
 
-        if (coluna.notNull || coluna.not_null || coluna.notnull) {
-            resultado += ` NAO NULO`;
+        if (coluna.nulo) {
+            resultado += `NAO NULO `;
         } else {
-            resultado += ` NULO`;
+            resultado += `NULO `;
         }
 
-        if (typeof coluna.default !== "undefined") {
-            resultado += ` PADRÃO ${this.traduzirValor(coluna.default)}`;
+        // TODO: Implementar mais futuramente.
+        /* if (typeof coluna.default !== "undefined") {
+            resultado += `PADRÃO ${this.traduzirValor(coluna.default)} `;
         }
 
         if (coluna.unique) {
-            resultado += ` ÚNICA`;
-        }
+            resultado += `ÚNICA `;
+        } */
 
         return resultado;
     }
 
-    protected traduzirComandoCriar(comando: Comando): string {
-        const cmd: any = comando as any;
-        const tabela = this.traduzirIdentificador(cmd.tabela || cmd.nome || cmd.table || "");
-        const colunas = cmd.colunas || cmd.campos || cmd.definicoes || [];
+    protected traduzirComandoCriar(comando: Criar): string {
+        let resultado = `CRIAR TABELA `;
 
-        let resultado = `CRIAR TABELA ${tabela} (\n`;
+        resultado += `${comando.nomeEntidade} (\n`;
 
-        if (Array.isArray(colunas) && colunas.length > 0) {
-            for (const coluna of colunas) {
-                resultado += this.traduzirColunaComTipo(coluna);
+        for (const coluna of comando.colunas) {
+            resultado += this.traduzirColunaComTipo(coluna);
 
-                if (coluna.primaryKey || coluna.primary) {
-                    resultado += ` CHAVE PRIMARIA`;
-                    if (coluna.autoIncremento || coluna.autoincrement) {
-                        resultado += ` AUTO INCREMENTO`;
-                    }
+            if (coluna.chavePrimaria) {
+                resultado += 'CHAVE PRIMÁRIA ';
+                if (coluna.autoIncremento) {
+                    resultado += 'AUTO INCREMENTO ';
                 }
-
-                resultado += ",\n";
             }
 
-            resultado = resultado.slice(0, -2);
+            resultado = resultado.slice(0, -1);
+            resultado += ',\n';
         }
 
+        resultado = resultado.slice(0, -2);
         resultado += `\n)`;
         return resultado;
     }
 
-    protected traduzirAlteracaoColuna(alteracao: any): string {
-        const tipo = (alteracao.tipo || alteracao.type || "ADICIONAR").toString().toUpperCase();
-
+    protected traduzirTipoDeDados(tipo: string) {
         switch (tipo) {
-            case "ADD":
-            case "ADICIONAR":
-                if (alteracao.definicao) {
-                    return `ADICIONAR ${alteracao.definicao}`;
-                }
-                if (alteracao.coluna) {
-                    const c = alteracao.coluna;
-                    let partes = `${this.traduzirIdentificador(c.nome || c.name || c.column)}`;
-                    if (c.tipo || c.type) {
-                        partes += ` ${c.tipo || c.type}`;
-                    }
-                    if (c.notNull) {
-                        partes += ` NAO NULO`;
-                    }
-                    return `ADICIONAR COLUNA ${partes}`;
-                }
-                break;
-
-            case "DROP":
-            case "EXCLUIR":
-                if (alteracao.coluna) {
-                    return `EXCLUIR COLUNA ${this.traduzirIdentificador(alteracao.coluna)}`;
-                }
-                if (alteracao.constraint) {
-                    return `EXCLUIR RESTRIÇÃO ${this.traduzirIdentificador(alteracao.constraint)}`;
-                }
-                break;
-
-            case "RENAME":
-            case "RENOMEAR":
-                return `RENOMEAR COLUNA ${this.traduzirIdentificador(alteracao.de || alteracao.from)} PARA ${this.traduzirIdentificador(alteracao.para || alteracao.to)}`;
-
-            case "MODIFY":
-            case "ALTER":
-            case "ALTERAR":
-                if (alteracao.coluna && alteracao.tipo) {
-                    return `ALTERAR COLUNA ${this.traduzirIdentificador(alteracao.coluna)} TIPO ${alteracao.tipo}`;
-                }
-                break;
+            case 'INTEIRO':
+                return 'INT';
+            case 'LOGICO':
+            case 'LÓGICO':
+                return 'BOOLEAN';
+            case 'NUMERO':
+            case 'NÚMERO':
+                return 'NUMERIC';
+            case 'CARACTERES':
+                return 'VARCHAR';
+            case 'TEXTO':
+                return 'TEXT';
         }
-
-        return String(alteracao.raw || alteracao.sql || "");
     }
 
-    protected traduzirComandoAlterar(comando: Comando): string {
-        const cmd: any = comando as any;
-        const tabela = this.traduzirIdentificador(cmd.tabela || cmd.nome || cmd.table || "");
-        const alteracoes = cmd.alteracoes || cmd.changes || cmd.modificacoes || [];
-
-        if (!tabela || !Array.isArray(alteracoes) || alteracoes.length === 0) {
-            return "";
+    protected traduzirTipoDeRestricao(tipo: string) {
+        switch (tipo) {
+            case 'CHAVE_PRIMARIA':
+                return 'PRIMARY KEY';
+            case 'CHAVE_ESTRANGEIRA':
+                return 'FOREIGN KEY';
+            case 'ÚNICA':
+                return 'UNIQUE';
         }
+    }
+
+    protected logicaManipulacaoColunas(elemento: Coluna | Restricao) {
+        if (elemento instanceof Coluna) {
+            let formatacaoColuna = `COLUNA ${elemento.nomeColuna} ${this.traduzirTipoDeDados(elemento.tipo)}`;
+            if (elemento.tipo === 'CARACTERES') {
+                formatacaoColuna += `(${elemento.tamanho.lexema})`;
+            }
+
+            formatacaoColuna += ` `;
+            return formatacaoColuna;
+        }
+
+        if (elemento instanceof Restricao) {
+            let formatacaoRestricao = `RESTRIÇÃO ${elemento.nome} ${this.traduzirTipoDeRestricao(elemento.tipo)} (`;
+            for (const coluna of elemento.colunas) {
+                formatacaoRestricao += coluna + ', ';
+            }
+
+            formatacaoRestricao = formatacaoRestricao.slice(0, -2);
+            formatacaoRestricao += `) REFERENCES ${elemento.tabelaReferenciada} (`;
+            for (const colunaReferenciada of elemento.colunasReferenciadas) {
+                formatacaoRestricao += colunaReferenciada + ', ';
+            }
+
+            formatacaoRestricao = formatacaoRestricao.slice(0, -2);
+            formatacaoRestricao += `) `;
+            return formatacaoRestricao;
+        }
+    }
+
+    protected traduzirAlteracaoColuna(operacao: OperacaoAlteracaoTabela): string {
+        switch (operacao.tipo) {
+            case "ADICIONAR":
+                return `ADICIONAR ${this.logicaManipulacaoColunas(
+                    operacao.elemento
+                )}`;
+
+            case "REMOVER":
+                /* if (operacao.coluna) {
+                    return `REMOVER COLUNA ${this.traduzirIdentificador(operacao.coluna)}`;
+                }
+                if (operacao.constraint) {
+                    return `REMOVER RESTRIÇÃO ${this.traduzirIdentificador(operacao.constraint)}`;
+                } */
+                break;
+
+            case "RENOMEAR":
+                // return `RENOMEAR COLUNA ${this.traduzirIdentificador(operacao.de || operacao.from)} PARA ${this.traduzirIdentificador(operacao.para || operacao.to)}`;
+                break;
+
+            case "ALTERAR":
+                return `ALTERAR COLUNA ${this.logicaManipulacaoColunas(
+                    operacao.elemento
+                )}`;
+        }
+    }
+
+    protected traduzirComandoAlterar(comando: Alterar): string {
+        const tabela = this.traduzirIdentificador(comando.nomeEntidade);
 
         let resultado = `ALTERAR TABELA ${tabela} `;
 
-        const partes = alteracoes
-            .map((a: any) => this.traduzirAlteracaoColuna(a))
+        const partes = comando.operacoes
+            .map((a: OperacaoAlteracaoTabela) => this.traduzirAlteracaoColuna(a))
             .filter((s: string) => s);
 
         if (partes.length === 0) return "";

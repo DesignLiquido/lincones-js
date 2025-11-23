@@ -222,7 +222,7 @@ export class TradutorSqlAnsi {
         return resultado;
     }
 
-    private logicaManipulacaoColunas(elemento: Coluna | Restricao) {
+    protected logicaManipulacaoColunas(elemento: Coluna | Restricao) {
         if (elemento instanceof Coluna) {
             let formatacaoColuna = `COLUMN ${elemento.nomeColuna} ${this.traduzirTipoDeDados(elemento.tipo)}`;
             if (elemento.tipo === 'CARACTERES') {
