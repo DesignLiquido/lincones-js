@@ -1,6 +1,6 @@
 import { AvaliadorSintaticoSqlAnsi } from "../fontes/avaliador-sintatico/avaliador-sintatico-sql-ansi";
 import { LexadorSqlAnsi } from "../fontes/lexador/lexador-sql-ansi";
-import { Alterar, Atualizar, Criar, Excluir, ExcluirEntidade, Inserir, Selecionar } from "../fontes/comandos";
+import { Alterar, Atualizar, Criar, Excluir, RemoverEntidade, Inserir, Selecionar } from "../fontes/comandos";
 
 describe('Avaliador Sintático (SQL ANSI)', () => {
     let lexador: LexadorSqlAnsi;
@@ -341,8 +341,8 @@ describe('Avaliador Sintático (SQL ANSI)', () => {
                     expect(retornoAvaliadorSintatico.erros.length).toBe(0);
                     expect(retornoAvaliadorSintatico.comandos.length).toBe(1);
                     
-                    const comando = retornoAvaliadorSintatico.comandos[0] as ExcluirEntidade;
-                    expect(comando).toBeInstanceOf(ExcluirEntidade);
+                    expect(retornoAvaliadorSintatico.comandos[0]).toBeInstanceOf(RemoverEntidade);
+                    const comando = retornoAvaliadorSintatico.comandos[0] as RemoverEntidade;
                     expect(comando.nomeEntidade).toBe('clientes_antigos');
                     expect(comando.tipoEntidade).toBe('TABELA');
                 });
@@ -355,9 +355,10 @@ describe('Avaliador Sintático (SQL ANSI)', () => {
                     const retornoAvaliadorSintatico = avaliadorSintatico.analisar(retornoLexador);
 
                     expect(retornoAvaliadorSintatico.erros.length).toBe(0);
-                    const comando = retornoAvaliadorSintatico.comandos[0] as ExcluirEntidade;
+                    expect(retornoAvaliadorSintatico.comandos[0]).toBeInstanceOf(RemoverEntidade);
+                    const comando = retornoAvaliadorSintatico.comandos[0] as RemoverEntidade;
                     expect(comando.nomeEntidade).toBe('relatorio_vendas');
-                    expect(comando.tipoEntidade).toBe('VISÃO');
+                    expect(comando.tipoEntidade).toBe('VISAO');
                 });
             });
 

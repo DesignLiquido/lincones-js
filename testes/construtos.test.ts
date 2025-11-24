@@ -21,7 +21,7 @@ describe('Construtos', () => {
                 new Literal('valor')
             );
             
-            expect(colunaEValor.toString()).toBe("<ColunaEValor coluna=nome valor=<Literal valor=valor tipo presumido=TEXTO>>");
+            expect(colunaEValor.toString()).toBe("<ColunaEValor coluna=nome valor=<Literal valor=valor tipo presumido=CARACTERES>>");
         });
     });
 
@@ -33,7 +33,7 @@ describe('Construtos', () => {
                 new Literal('teste')
             );
 
-            expect(condicao.toString()).toBe("<Condição operando esquerdo=<Coluna nome=nome tipo=TEXTO nulo=Não chave primária;> operador=IGUAL operando direito=<Literal valor=teste tipo presumido=TEXTO>>");
+            expect(condicao.toString()).toBe("<Condição operando esquerdo=<Coluna nome=nome tipo=TEXTO nulo=Não chave primária;> operador=IGUAL operando direito=<Literal valor=teste tipo presumido=CARACTERES>>");
         });
     });
 

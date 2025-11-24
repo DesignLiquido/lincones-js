@@ -29,7 +29,7 @@ describe('Tradutor Reverso (SQL ANSI)', () => {
                 expect(resultado).toContain('CHAVE PRIMÁRIA');
                 expect(resultado).toContain('email');
                 expect(resultado).toContain('CARACTERES');
-                expect(resultado).toContain('NAO NULO');
+                expect(resultado).toContain('NÃO NULO');
             });
 
             describe('Alterar tabela', () => {
