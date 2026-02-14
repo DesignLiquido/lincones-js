@@ -2,6 +2,7 @@ export * from './coluna';
 export * from './coluna-e-valor';
 export * from './condicao';
 export * from './construto';
+export * from './juncao';
 export * from './literal';
 export * from './operacao-alteracao-tabela';
 export * from './parametro-anonimo';

@@ -8,7 +8,7 @@ import {
     RemoverEntidade,
     Selecionar
 } from '../comandos';
-import { Coluna, Construto, ParametroAnonimo, ParametroNomeado } from '../construtos';
+import { Coluna, Construto, Juncao, ParametroAnonimo, ParametroNomeado } from '../construtos';
 import { Literal } from '../construtos/literal';
 import { ReferenciaColuna } from '../construtos/referencia-coluna';
 import { Restricao } from '../construtos/restricao';
@@ -31,11 +31,62 @@ export class TradutorSqlAnsi {
         switch (operador) {
             case tiposDeSimbolos.IGUAL:
                 return '=';
+            case tiposDeSimbolos.MAIOR:
+                return '>';
+            case tiposDeSimbolos.MAIOR_IGUAL:
+                return '>=';
+            case tiposDeSimbolos.MENOR:
+                return '<';
+            case tiposDeSimbolos.MENOR_IGUAL:
+                return '<=';
             case tiposDeSimbolos.VERDADEIRO:
                 return true;
             case tiposDeSimbolos.FALSO:
                 return false;
         }
+    }
+
+    protected traduzirTipoJuncao(tipo: string): string {
+        const tipoNormalizado = String(tipo || '').toUpperCase();
+        switch (tipoNormalizado) {
+            case 'INTERNA':
+            case 'INNER':
+                return 'INNER';
+            case 'ESQUERDA':
+            case 'LEFT':
+                return 'LEFT';
+            case 'DIREITA':
+            case 'RIGHT':
+                return 'RIGHT';
+            case 'COMPLETA':
+            case 'FULL':
+                return 'FULL';
+            case 'CRUZADA':
+            case 'CROSS':
+                return 'CROSS';
+            default:
+                return 'INNER';
+        }
+    }
+
+    protected traduzirJuncao(juncao: Juncao): string {
+        const tipoJuncao = this.traduzirTipoJuncao(juncao.tipo);
+        let resultado = `${tipoJuncao} JOIN ${juncao.tabela}`;
+
+        if (juncao.alias) {
+            resultado += ` AS ${juncao.alias}`;
+        }
+
+        if (juncao.condicoes && juncao.condicoes.length > 0) {
+            resultado += `\nON `;
+            for (const condicao of juncao.condicoes) {
+                resultado += ` ${this.traduzirConstruto(condicao.esquerda)} ${this.traduzirOperador(condicao.operador)} ${this.traduzirConstruto(condicao.direita)}\nAND`;
+            }
+
+            resultado = resultado.slice(0, -4);
+        }
+
+        return resultado;
     }
 
     protected traduzirTipoDeDados(tipo: string) {
@@ -220,6 +271,12 @@ export class TradutorSqlAnsi {
         }
 
         resultado += `\nFROM ${comandoSelecionar.tabela}`;
+
+        if (comandoSelecionar.juncoes && comandoSelecionar.juncoes.length > 0) {
+            for (const juncao of comandoSelecionar.juncoes) {
+                resultado += `\n${this.traduzirJuncao(juncao)}`;
+            }
+        }
 
         // Condições
         if (comandoSelecionar.condicoes.length > 0) {
