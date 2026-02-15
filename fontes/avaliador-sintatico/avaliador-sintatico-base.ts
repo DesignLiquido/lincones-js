@@ -450,6 +450,25 @@ export abstract class AvaliadorSintaticoBase
                 }
 
                 break;
+            case tiposDeSimbolos.CARACTERES:
+                tipoColuna = tiposDeSimbolos.CARACTERES;
+                this.avancar();
+                if (
+                    this.verificarSeSimboloAtualEIgualA(
+                        tiposDeSimbolos.PARENTESE_ESQUERDO
+                    )
+                ) {
+                    tamanhoColuna = this.consumir(
+                        tiposDeSimbolos.NUMERO,
+                        'Esperado tamanho de caracteres de coluna em comando de criação de tabela.'
+                    );
+                    this.consumir(
+                        tiposDeSimbolos.PARENTESE_DIREITO,
+                        'Esperado parêntese direito após declaração de tamanho de coluna em comando de criação de tabela.'
+                    );
+                }
+
+                break;
             default:
                 throw this.erro(
                     this.simbolos[this.atual],
