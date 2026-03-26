@@ -36,8 +36,8 @@ describe('Avaliador Sintático (SQL ANSI)', () => {
                     expect(comando.colunas[1].nulo).toBe(false);
                 });
 
-                // TODO: Verificar se `IF NOT EXISTS` é parte do SQL ANSI.
-                it.skip('Criar tabela com IF NOT EXISTS', () => {
+                // IF NOT EXISTS is not part of SQL ANSI standard but is widely supported (SQLite, MySQL, PostgreSQL)
+                it('Criar tabela com IF NOT EXISTS', () => {
                     const codigo = [
                         'CREATE TABLE IF NOT EXISTS usuarios (id INT PRIMARY KEY)'
                     ];

@@ -251,24 +251,18 @@ export class AvaliadorSintaticoSqlAnsi extends AvaliadorSintaticoBase {
 
         // IF NOT EXISTS (opcional)
         let seNaoExistir = false;
-        if (this.verificarTipoSimboloAtual(tiposDeSimbolos.IDENTIFICADOR)) {
-            const simboloAtual = this.simbolos[this.atual];
-            if (simboloAtual.lexema.toUpperCase() === 'IF') {
-                this.avancar();
-                const simboloNot = this.consumir(
-                    tiposDeSimbolos.IDENTIFICADOR,
-                    'Esperado palavra "NOT" após palavra "IF".'
-                );
-                if (simboloNot.lexema.toUpperCase() === 'NOT') {
-                    const simboloExists = this.consumir(
-                        tiposDeSimbolos.IDENTIFICADOR,
-                        'Esperado palavra "EXISTS" após palavra "NOT".'
-                    );
-                    if (simboloExists.lexema.toUpperCase() === 'EXISTS') {
-                        seNaoExistir = true;
-                    }
-                }
-            }
+        if (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.SE)) {
+            this.consumir(
+                tiposDeSimbolos.NAO,
+                'Esperado palavra "NOT" após palavra "IF".'
+            );
+
+            this.consumir(
+                tiposDeSimbolos.EXISTIR,
+                'Esperado palavra "EXISTS" após palavra "NOT".'
+            );
+
+            seNaoExistir = true;
         }
 
         const nomeDaTabela = this.consumir(

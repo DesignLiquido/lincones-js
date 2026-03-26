@@ -15,7 +15,7 @@ describe('Tradutor (SQL ANSI)', () => {
                 tradutor = new TradutorSqlAnsi();
             });
 
-            it.skip('Criar', () => {
+            it('Criar', () => {
                 const codigo = [
                     'CRIAR TABELA clientes (id INTEIRO CHAVE PRIMARIA, email CARACTERES(120))'
                 ];
