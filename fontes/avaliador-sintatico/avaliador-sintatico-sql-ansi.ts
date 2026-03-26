@@ -320,27 +320,25 @@ export class AvaliadorSintaticoSqlAnsi extends AvaliadorSintaticoBase {
             'Esperado identificador de nome de tabela após palavra reservada "INTO" em declaração "INSERT".'
         );
 
-        // Colunas
-        this.consumir(
-            tiposDeSimbolos.PARENTESE_ESQUERDO,
-            'Esperado abertura de parênteses após identificador de nome de tabela em comando "INSERT".'
-        );
+        // Colunas (opcional)
         const colunas = [];
-        do {
-            const nomeDaColuna = this.consumir(
-                tiposDeSimbolos.IDENTIFICADOR,
-                'Esperado identificador de nome de coluna após identificador de nome de tabela em comando "INSERT".'
-            );
-            colunas.push(nomeDaColuna.lexema);
-        } while (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.VIRGULA));
+        if (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.PARENTESE_ESQUERDO)) {
+            do {
+                const nomeDaColuna = this.consumir(
+                    tiposDeSimbolos.IDENTIFICADOR,
+                    'Esperado identificador de nome de coluna após identificador de nome de tabela em comando "INSERT".'
+                );
+                colunas.push(nomeDaColuna.lexema);
+            } while (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.VIRGULA));
 
-        this.consumir(
-            tiposDeSimbolos.PARENTESE_DIREITO,
-            'Esperado fechamento de parênteses após declaração de colunas em comando "INSERT".'
-        );
+            this.consumir(
+                tiposDeSimbolos.PARENTESE_DIREITO,
+                'Esperado fechamento de parênteses após declaração de colunas em comando "INSERT".'
+            );
+        }
         this.consumir(
             tiposDeSimbolos.VALORES,
-            'Esperado palavra reservada "VALUES" após primeiro fechamento de parênteses em comando "INSERT".'
+            'Esperado palavra reservada "VALUES" após nome de tabela em comando "INSERT".'
         );
         this.consumir(
             tiposDeSimbolos.PARENTESE_ESQUERDO,
@@ -376,7 +374,7 @@ export class AvaliadorSintaticoSqlAnsi extends AvaliadorSintaticoBase {
             'Esperado fechamento de parênteses após declaração de valores em comando "INSERT".'
         );
 
-        if (valores.length !== colunas.length) {
+        if (colunas.length > 0 && valores.length !== colunas.length) {
             throw this.erro(
                 simboloInserir,
                 'Número de colunas não correspondente ao número de valores em comando "INSERT".'

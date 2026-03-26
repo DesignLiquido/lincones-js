@@ -657,27 +657,25 @@ export abstract class AvaliadorSintaticoBase
             'Esperado identificador de nome de tabela após palavra reservada "EM" em declaração "INSERIR".'
         );
 
-        // Colunas
-        this.consumir(
-            tiposDeSimbolos.PARENTESE_ESQUERDO,
-            'Esperado abertura de parênteses após identificador de nome de tabela em comando "INSERIR".'
-        );
+        // Colunas (opcional)
         const colunas = [];
-        do {
-            const nomeDaColuna = this.consumir(
-                tiposDeSimbolos.IDENTIFICADOR,
-                'Esperado identificador de nome de coluna após identificador de nome de tabela em comando "INSERIR".'
-            );
-            colunas.push(nomeDaColuna.lexema);
-        } while (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.VIRGULA));
+        if (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.PARENTESE_ESQUERDO)) {
+            do {
+                const nomeDaColuna = this.consumir(
+                    tiposDeSimbolos.IDENTIFICADOR,
+                    'Esperado identificador de nome de coluna após identificador de nome de tabela em comando "INSERIR".'
+                );
+                colunas.push(nomeDaColuna.lexema);
+            } while (this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.VIRGULA));
 
-        this.consumir(
-            tiposDeSimbolos.PARENTESE_DIREITO,
-            'Esperado fechamento de parênteses após declaração de colunas em comando "INSERIR".'
-        );
+            this.consumir(
+                tiposDeSimbolos.PARENTESE_DIREITO,
+                'Esperado fechamento de parênteses após declaração de colunas em comando "INSERIR".'
+            );
+        }
         this.consumir(
             tiposDeSimbolos.VALORES,
-            'Esperado palavra reservada "VALORES" após primeiro fechamento de parênteses em comando "INSERIR".'
+            'Esperado palavra reservada "VALORES" após nome de tabela em comando "INSERIR".'
         );
         this.consumir(
             tiposDeSimbolos.PARENTESE_ESQUERDO,
@@ -713,7 +711,7 @@ export abstract class AvaliadorSintaticoBase
             'Esperado fechamento de parênteses após declaração de valores em comando "INSERIR".'
         );
 
-        if (valores.length !== colunas.length) {
+        if (colunas.length > 0 && valores.length !== colunas.length) {
             throw this.erro(
                 simboloInserir,
                 'Número de colunas não correspondente ao número de valores em comando "INSERIR".'
