@@ -345,9 +345,18 @@ export class TradutorSqlAnsi {
                     )}`;
                     break;
                 case 'REMOVER':
-                    resultado += 'DROP';
+                    if (operacao.elemento instanceof Coluna) {
+                        resultado += `DROP COLUMN ${operacao.elemento.nomeColuna} `;
+                    } else if (operacao.elemento instanceof Restricao) {
+                        resultado += `DROP CONSTRAINT ${operacao.elemento.nome} `;
+                    }
                     break;
                 case 'RENOMEAR':
+                    if (operacao.elemento instanceof Coluna) {
+                        resultado += `RENAME COLUMN ${operacao.elemento.nomeColuna} `;
+                    } else if (operacao.elemento instanceof Restricao) {
+                        resultado += `RENAME CONSTRAINT ${operacao.elemento.nome} `;
+                    }
                     break;
             }
         }

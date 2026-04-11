@@ -3,4 +3,5 @@ export interface SimboloInterface {
     tipo: string;
     literal: string;
     linha: number;
+    paraTexto(): string;
 }

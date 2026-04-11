@@ -20,10 +20,10 @@ import tiposDeSimbolos from '../tipos-de-simbolos';
 
 export abstract class AvaliadorSintaticoBase
     implements AvaliadorSintaticoInterface {
-    simbolos: SimboloInterface[];
-    erros: ErroAvaliadorSintatico[];
-    atual: number;
-    bloco: number;
+    simbolos: SimboloInterface[] = [];
+    erros: ErroAvaliadorSintatico[] = [];
+    atual = -1;
+    bloco = -1;
 
     consumir(tipo: string, mensagemDeErro: string): SimboloInterface {
         if (this.verificarTipoSimboloAtual(tipo))
@@ -76,7 +76,7 @@ export abstract class AvaliadorSintaticoBase
         }
     }
 
-    protected logicaManipulacaoColuna(simboloOperacao: SimboloInterface): Coluna {
+    protected logicaManipulacaoColuna(simboloOperacao: SimboloInterface): Coluna | undefined {
         const simboloNomeDaColuna = this.consumir(
             tiposDeSimbolos.IDENTIFICADOR,
             'Esperado identificador de nome de tabela após palavra reservada "TABELA".'
@@ -98,7 +98,7 @@ export abstract class AvaliadorSintaticoBase
         return undefined;
     }
 
-    protected logicaManipulacaoRestricao(simboloNomeTabela: SimboloInterface, simboloOperacao: SimboloInterface): Restricao {
+    protected logicaManipulacaoRestricao(simboloNomeTabela: SimboloInterface, simboloOperacao: SimboloInterface): Restricao | undefined {
         const simboloNomeDaRestricao = this.consumir(
             tiposDeSimbolos.IDENTIFICADOR,
             'Esperado identificador de nome de restrição após palavra reservada "RESTRIÇÃO".'
@@ -226,7 +226,7 @@ export abstract class AvaliadorSintaticoBase
     protected logicaAdicionarOuAlterarRestricao(
         simboloNomeDaTabela: SimboloInterface,
         simboloNomeDaRestricao: SimboloInterface
-    ): Restricao {
+    ): Restricao | undefined {
         // Tipo de restrição
         const simboloTipoRestricao = this.avancarEDevolverAnterior();
         switch (simboloTipoRestricao.tipo) {
@@ -239,7 +239,7 @@ export abstract class AvaliadorSintaticoBase
         return undefined;
     }
 
-    protected logicaRemocaoColuna(simboloNomeDaColuna: SimboloInterface): Coluna {
+    protected logicaRemocaoColuna(simboloNomeDaColuna: SimboloInterface): Coluna | undefined {
         // Ponto-e-vírgula opcional após declaração de remoção de coluna
         this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.PONTO_VIRGULA);
 
@@ -307,7 +307,7 @@ export abstract class AvaliadorSintaticoBase
             tiposDeSimbolos.RENOMEAR
         )) {
             const simboloOperacao = this.simbolos[this.atual - 1];
-            let elemento: Coluna | Restricao;
+            let elemento: Coluna | Restricao | undefined;
 
             switch (this.simbolos[this.atual].tipo) {
                 case tiposDeSimbolos.COLUNA:
@@ -325,7 +325,7 @@ export abstract class AvaliadorSintaticoBase
             operacoes.push(
                 new OperacaoAlteracaoTabela(
                     simboloOperacao.lexema,
-                    elemento
+                    elemento as Coluna | Restricao
                 )
             );
         }
@@ -530,7 +530,7 @@ export abstract class AvaliadorSintaticoBase
         return new Coluna(
             nomeDaColuna.lexema,
             tipoColuna,
-            tamanhoColuna,
+            tamanhoColuna as SimboloInterface,
             nulo,
             chavePrimaria,
             false,
@@ -900,7 +900,7 @@ export abstract class AvaliadorSintaticoBase
                     return null;
             }
         } catch (erro) {
-            this.erros.push(erro);
+            this.erros.push(erro as any);
             return null;
         }
     }
@@ -919,7 +919,7 @@ export abstract class AvaliadorSintaticoBase
 
         const declaracoes: Comando[] = [];
         while (!this.estaNoFinal()) {
-            declaracoes.push(this.declaracao());
+            declaracoes.push(this.declaracao() as Comando);
         }
 
         return {
