@@ -142,7 +142,7 @@ export class TradutorSqlAnsi {
     protected traduzirColunaComTipo(coluna: Coluna) {
         let resultado = `${' '.repeat(this.tamanhoIndentacao)}${
             coluna.nomeColuna
-        } ${this.traduzirTipoDeDados(coluna.tipo)}`;
+        } ${this.traduzirTipoDeDados(coluna.tipo || '')}`;
 
         if (coluna.tamanho) {
             resultado += `(${coluna.tamanho.lexema}) `;
@@ -283,11 +283,6 @@ export class TradutorSqlAnsi {
             resultado += '\nWHERE ';
             for (const condicao of comandoSelecionar.condicoes) {
                 resultado += ` ${this.traduzirConstruto(condicao.esquerda)} ${this.traduzirOperador(condicao.operador)} ${this.traduzirConstruto(condicao.direita)}\nAND`;
-                /* resultado += `${
-                    condicao.esquerda.lexema
-                } ${this.traduzirOperador(condicao.operador)} ${
-                    condicao.direita
-                } AND `; */
             }
             resultado = resultado.slice(0, -4);
         }
@@ -297,9 +292,9 @@ export class TradutorSqlAnsi {
 
     protected logicaManipulacaoColunas(elemento: Coluna | Restricao) {
         if (elemento instanceof Coluna) {
-            let formatacaoColuna = `COLUMN ${elemento.nomeColuna} ${this.traduzirTipoDeDados(elemento.tipo)}`;
+            let formatacaoColuna = `COLUMN ${elemento.nomeColuna} ${this.traduzirTipoDeDados(elemento.tipo || '')}`;
             if (elemento.tipo === 'CARACTERES') {
-                formatacaoColuna += `(${elemento.tamanho.lexema})`;
+                formatacaoColuna += `(${elemento.tamanho?.lexema})`;
             }
 
             formatacaoColuna += ` `;
@@ -314,7 +309,7 @@ export class TradutorSqlAnsi {
 
             formatacaoRestricao = formatacaoRestricao.slice(0, -2);
             formatacaoRestricao += `) REFERENCES ${elemento.tabelaReferenciada} (`;
-            for (const colunaReferenciada of elemento.colunasReferenciadas) {
+            for (const colunaReferenciada of elemento.colunasReferenciadas || []) {
                 formatacaoRestricao += colunaReferenciada + ', ';
             }
 
@@ -350,7 +345,7 @@ export class TradutorSqlAnsi {
                     )}`;
                     break;
                 case 'REMOVER':
-                    resultado += 'BIT';
+                    resultado += 'DROP';
                     break;
                 case 'RENOMEAR':
                     break;
@@ -360,7 +355,7 @@ export class TradutorSqlAnsi {
         return resultado;
     }
 
-    dicionarioComandos = {
+    dicionarioComandos: {[chave: string]: Function} = {
         Alterar: this.traduzirComandoAlterar.bind(this),
         Atualizar: this.traduzirComandoAtualizar.bind(this),
         Criar: this.traduzirComandoCriar.bind(this),
