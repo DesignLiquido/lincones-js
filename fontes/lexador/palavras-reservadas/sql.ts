@@ -38,6 +38,7 @@ export default {
     string: tiposDeSimbolos.TEXTO,
     table: tiposDeSimbolos.TABELA,
     text: tiposDeSimbolos.TEXTO,
+    to: tiposDeSimbolos.PARA,
     true: tiposDeSimbolos.VERDADEIRO,
     unique: tiposDeSimbolos.UNICA,
     update: tiposDeSimbolos.ATUALIZAR,

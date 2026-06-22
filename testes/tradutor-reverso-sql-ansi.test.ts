@@ -1,6 +1,8 @@
 import { AvaliadorSintaticoSqlAnsi } from "../fontes/avaliador-sintatico";
 import { LexadorSqlAnsi } from "../fontes/lexador";
 import { TradutorReversoSqlAnsi } from "../fontes/tradutor/tradutor-reverso-sql-ansi";
+import { Criar } from "../fontes/comandos";
+import { Coluna } from "../fontes/construtos";
 
 describe('Tradutor Reverso (SQL ANSI)', () => {
     let lexador: LexadorSqlAnsi;
@@ -30,6 +32,29 @@ describe('Tradutor Reverso (SQL ANSI)', () => {
                 expect(resultado).toContain('email');
                 expect(resultado).toContain('CARACTERES');
                 expect(resultado).toContain('NÃO NULO');
+            });
+
+            it('Criar com SE NÃO EXISTIR', () => {
+                const criar = new Criar(0, 'produtos', [
+                    new Coluna('id', 'INTEIRO', undefined, false, true, false, true),
+                    new Coluna('nome', 'TEXTO', undefined, false, false, false, false)
+                ], true);
+                const resultado = tradutor.traduzir([criar]);
+
+                expect(resultado).toContain('SE NÃO EXISTIR');
+                expect(resultado).toContain('produtos');
+                expect(resultado).toContain('CHAVE PRIMÁRIA');
+                expect(resultado).toContain('AUTO INCREMENTO');
+            });
+
+            it('Criar sem SE NÃO EXISTIR não inclui a cláusula', () => {
+                const criar = new Criar(0, 'produtos', [
+                    new Coluna('id', 'INTEIRO', undefined, false, true, false, false)
+                ], false);
+                const resultado = tradutor.traduzir([criar]);
+
+                expect(resultado).not.toContain('SE NÃO EXISTIR');
+                expect(resultado).toContain('CRIAR TABELA produtos');
             });
 
             describe('Alterar tabela', () => {
@@ -87,6 +112,34 @@ describe('Tradutor Reverso (SQL ANSI)', () => {
                     expect(resultado).toContain('ALTERAR TABELA produtos');
                     expect(resultado).toContain('ALTERAR COLUNA');
                     expect(resultado).toContain('preco');
+                });
+
+                it('Renomear coluna', () => {
+                    const resultadoLexador = lexador.mapear([
+                        "ALTER TABLE clientes RENAME COLUMN email TO correio_eletronico"
+                    ]);
+                    const resultadoAvaliadorSintatico = avaliadorSintatico.analisar(resultadoLexador);
+                    const resultado = tradutor.traduzir(resultadoAvaliadorSintatico.comandos);
+
+                    expect(resultado).toBeTruthy();
+                    expect(resultado).toContain('ALTERAR TABELA clientes');
+                    expect(resultado).toContain('RENOMEAR COLUNA');
+                    expect(resultado).toContain('email');
+                    expect(resultado).toContain('PARA');
+                    expect(resultado).toContain('correio_eletronico');
+                });
+
+                it('Remoção de restrição', () => {
+                    const resultadoLexador = lexador.mapear([
+                        "ALTER TABLE fornecedores DROP CONSTRAINT unique_nome"
+                    ]);
+                    const resultadoAvaliadorSintatico = avaliadorSintatico.analisar(resultadoLexador);
+                    const resultado = tradutor.traduzir(resultadoAvaliadorSintatico.comandos);
+
+                    expect(resultado).toBeTruthy();
+                    expect(resultado).toContain('ALTERAR TABELA fornecedores');
+                    expect(resultado).toContain('REMOVER RESTRIÇÃO');
+                    expect(resultado).toContain('unique_nome');
                 });
             });
 

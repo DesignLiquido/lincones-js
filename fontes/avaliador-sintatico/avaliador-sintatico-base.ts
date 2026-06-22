@@ -113,7 +113,13 @@ export abstract class AvaliadorSintaticoBase
                 );
 
             case tiposDeSimbolos.EXCLUIR:
-                break;
+            case tiposDeSimbolos.REMOVER:
+                return new Restricao(
+                    simboloNomeDaRestricao.lexema,
+                    'CHAVE_PRIMARIA',
+                    simboloNomeTabela.lexema,
+                    []
+                );
             case tiposDeSimbolos.RENOMEAR:
                 break;
         }
@@ -308,26 +314,35 @@ export abstract class AvaliadorSintaticoBase
         )) {
             const simboloOperacao = this.simbolos[this.atual - 1];
             let elemento: Coluna | Restricao | undefined;
+            let nomeAnterior: string | undefined;
 
-            switch (this.simbolos[this.atual].tipo) {
-                case tiposDeSimbolos.COLUNA:
-                    this.avancar();
-                    elemento = this.logicaManipulacaoColuna(simboloOperacao);
-                    break;
-                case tiposDeSimbolos.RESTRICAO:
-                    this.avancar();
-                    elemento = this.logicaManipulacaoRestricao(nomeDaTabela, simboloOperacao);
-                    break;
-                default:
-                    throw this.erro(this.simbolos[this.atual], `Tipo de elemento de tabela ou visão inválido para operação "${simboloOperacao.lexema}": ${this.simbolos[this.atual].lexema}.`);
+            if (simboloOperacao.tipo === tiposDeSimbolos.RENOMEAR) {
+                this.consumir(tiposDeSimbolos.COLUNA, 'Esperado palavra reservada "COLUNA" após palavra reservada "RENOMEAR".');
+                nomeAnterior = this.consumir(tiposDeSimbolos.IDENTIFICADOR, 'Esperado nome da coluna a renomear após palavra reservada "COLUNA".').lexema;
+                this.consumir(tiposDeSimbolos.PARA, 'Esperado palavra reservada "PARA" após nome da coluna em "RENOMEAR COLUNA".');
+                const novoNome = this.consumir(tiposDeSimbolos.IDENTIFICADOR, 'Esperado novo nome da coluna após palavra reservada "PARA".').lexema;
+                elemento = new Coluna(novoNome);
+            } else {
+                switch (this.simbolos[this.atual].tipo) {
+                    case tiposDeSimbolos.COLUNA:
+                        this.avancar();
+                        elemento = this.logicaManipulacaoColuna(simboloOperacao);
+                        break;
+                    case tiposDeSimbolos.RESTRICAO:
+                        this.avancar();
+                        elemento = this.logicaManipulacaoRestricao(nomeDaTabela, simboloOperacao);
+                        break;
+                    default:
+                        throw this.erro(this.simbolos[this.atual], `Tipo de elemento de tabela ou visão inválido para operação "${simboloOperacao.lexema}": ${this.simbolos[this.atual].lexema}.`);
+                }
             }
 
-            operacoes.push(
-                new OperacaoAlteracaoTabela(
-                    simboloOperacao.lexema,
-                    elemento as Coluna | Restricao
-                )
+            const op = new OperacaoAlteracaoTabela(
+                simboloOperacao.lexema,
+                elemento as Coluna | Restricao
             );
+            if (nomeAnterior) op.nomeAnterior = nomeAnterior;
+            operacoes.push(op);
         }
 
         if (operacoes.length <= 0) {

@@ -5,9 +5,10 @@ import { Restricao } from "./restricao";
 export class OperacaoAlteracaoTabela extends Construto {
     tipo: 'ADICIONAR' | 'ALTERAR' | 'REMOVER' | 'RENOMEAR';
     elemento: Coluna | Restricao;
+    nomeAnterior?: string;
 
     constructor(
-        tipo: string, 
+        tipo: string,
         elemento: Coluna | Restricao
     ) {
         super();

@@ -235,6 +235,10 @@ export class TradutorReversoSqlAnsi {
     protected traduzirComandoCriar(comando: Criar): string {
         let resultado = `CRIAR TABELA `;
 
+        if (comando.seNaoExistir) {
+            resultado += `SE NÃO EXISTIR `;
+        }
+
         resultado += `${comando.nomeEntidade} (\n`;
 
         for (const coluna of comando.colunas) {
@@ -316,7 +320,7 @@ export class TradutorReversoSqlAnsi {
 
             formatacaoRestricao = formatacaoRestricao.slice(0, -2);
             formatacaoRestricao += `) REFERENCES ${elemento.tabelaReferenciada} (`;
-            for (const colunaReferenciada of elemento.colunasReferenciadas) {
+            for (const colunaReferenciada of elemento.colunasReferenciadas || []) {
                 formatacaoRestricao += colunaReferenciada + ', ';
             }
 
@@ -337,23 +341,20 @@ export class TradutorReversoSqlAnsi {
                 if (operacao.elemento instanceof Coluna) {
                     return `REMOVER COLUNA ${operacao.elemento.nomeColuna} `;
                 }
-                /* if (operacao.coluna) {
-                    
+                if (operacao.elemento instanceof Restricao) {
+                    return `REMOVER RESTRIÇÃO ${operacao.elemento.nome} `;
                 }
-                if (operacao.constraint) {
-                    return `REMOVER RESTRIÇÃO ${this.traduzirIdentificador(operacao.constraint)}`;
-                } */
-                break;
+                return "";
 
             case "RENOMEAR":
-                // return `RENOMEAR COLUNA ${this.traduzirIdentificador(operacao.de || operacao.from)} PARA ${this.traduzirIdentificador(operacao.para || operacao.to)}`;
-                break;
+                return `RENOMEAR COLUNA ${operacao.nomeAnterior} PARA ${(operacao.elemento as Coluna).nomeColuna} `;
 
             case "ALTERAR":
                 return `ALTERAR ${this.logicaManipulacaoColunasOuRestricoes(
                     operacao.elemento
                 )}`;
         }
+        return "";
     }
 
     protected traduzirComandoAlterar(comando: Alterar): string {
@@ -376,7 +377,7 @@ export class TradutorReversoSqlAnsi {
         let resultado = '';
 
         for (const comando of comandos.filter((c) => c)) {
-            resultado += `${this.dicionarioComandos[comando.constructor.name](comando)} \n`;
+            resultado += `${(this.dicionarioComandos as unknown as Record<string, (c: Comando) => string>)[comando.constructor.name](comando)} \n`;
         }
 
         return resultado;

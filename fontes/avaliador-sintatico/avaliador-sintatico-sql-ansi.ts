@@ -560,16 +560,24 @@ export class AvaliadorSintaticoSqlAnsi extends AvaliadorSintaticoBase {
             tiposDeSimbolos.RENOMEAR
         )) {
             const simboloOperacao = this.simbolos[this.atual - 1];
+            let elemento: Coluna | undefined;
+            let nomeAnterior: string | undefined;
 
-            const elemento = this.logicaManipulacaoColunaOuRestricao(simboloOperacao, nomeDaEntidade);
+            if (simboloOperacao.tipo === tiposDeSimbolos.RENOMEAR) {
+                this.consumir(tiposDeSimbolos.COLUNA, 'Esperado palavra reservada "COLUMN" após palavra reservada "RENAME".');
+                nomeAnterior = this.consumir(tiposDeSimbolos.IDENTIFICADOR, 'Esperado nome da coluna a renomear após palavra reservada "COLUMN".').lexema;
+                this.consumir(tiposDeSimbolos.PARA, 'Esperado palavra reservada "TO" após nome da coluna em "RENAME COLUMN".');
+                const novoNome = this.consumir(tiposDeSimbolos.IDENTIFICADOR, 'Esperado novo nome da coluna após palavra reservada "TO".').lexema;
+                elemento = new Coluna(novoNome);
 
-            if (elemento) {
-                operacoes.push(
-                    new OperacaoAlteracaoTabela(
-                        simboloOperacao.tipo,
-                        elemento
-                    )
-                );
+                const op = new OperacaoAlteracaoTabela(simboloOperacao.tipo, elemento);
+                op.nomeAnterior = nomeAnterior;
+                operacoes.push(op);
+            } else {
+                const elem = this.logicaManipulacaoColunaOuRestricao(simboloOperacao, nomeDaEntidade);
+                if (elem) {
+                    operacoes.push(new OperacaoAlteracaoTabela(simboloOperacao.tipo, elem));
+                }
             }
 
             this.verificarSeSimboloAtualEIgualA(tiposDeSimbolos.VIRGULA);

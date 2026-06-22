@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["jest"],
+    "rootDir": "."
+  },
+  "include": [
+    "fontes/**/*",
+    "testes/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}
